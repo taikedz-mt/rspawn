@@ -1,6 +1,7 @@
 local spawn_point = minetest.setting_get_pos("static_spawnpoint")
 
 local playerspawns = {}
+local spawnsfile = minetest.get_worldpath().."/dynamicspawns.lua.ser"
 
 local function newspawn(radius)
 	if not radius then
@@ -51,6 +52,7 @@ minetest.register_chatcommand("spawn", {
 		if not target then
 			playerspawns[name] = newspawn()
 			target = playerspawns[name]
+			spawnsave()
 		end
 		minetest.get_player_by_name(name):setpos(target)
 	end
@@ -65,8 +67,35 @@ minetest.register_chatcommand("newspawn", {
 	func = function(name)
 		playerspawns[name] = newspawn()
 		minetest.get_player_by_name(name):setpos(playerspawns[name])
+		spawnsave()
 	end
 })
+
+function spawnsave()
+	local serdata = minetest.serialize(playerspawns)
+	if not serdata then
+		minetest.log("error", "[spawn] Data serialization failed")
+		return
+	end
+	local file, err = io.open(spawnsfile, "w")
+	if err then
+		return err
+	end
+	file:write(serdata)
+	file:close()
+end
+
+function spawnload()
+	local file, err = io.open(spawnsfile, "r")
+	if err then
+		minetest.log("error", "[spawn] Data read failed")
+		return
+	end
+	playerspawns = minetest.deserialize(file:read("*a"))
+	file:close()
+end
+
+spawnload()
 
 minetest.register_on_newplayer(function(player)
 	minetest.after(1,function()
@@ -78,6 +107,8 @@ minetest.register_on_joinplayer(function(player)
 	minetest.after(1, function()
 		if not playerspawns[player:get_player_name()] then
 			playerspawns[player:get_player_name()] = newspawn()
+			spawnsave()
 		end
 	end)
 end)
+
