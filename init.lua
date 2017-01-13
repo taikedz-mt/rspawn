@@ -25,7 +25,7 @@ local function newspawn(radius)
 		over = minetest.registered_nodes[over]
 
 		
-		if under.walkable and not over.walkable then
+		if under.walkable and not over.walkable and not minetest.is_protected(anode, "") then
 			validnodes[#validnodes+1] = anode
 		end
 	end
