@@ -17,5 +17,6 @@ Players can request a new spawn point by typing `/newspawn` if they have the `ne
 ## License
 
 (C) 2017 Tai "DuCake" Kedzierski
+based originally on the mod by everamzah
 
 Provided under the terms of the LGPL v3.0
