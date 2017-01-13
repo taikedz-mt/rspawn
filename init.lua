@@ -56,14 +56,15 @@ minetest.register_chatcommand("spawn", {
 	end
 })
 
-minetest.register_privilege("respawn", "Can get a new randomized spawn position.")
+minetest.register_privilege("newspawn", "Can get a new randomized spawn position.")
 
-minetest.register_chatcommand("respawn", {
+minetest.register_chatcommand("newspawn", {
 	description = "Randomly select a new spawn position.",
 	params = "",
-	privs = "respawn",
+	privs = "newspawn",
 	func = function(name)
 		playerspawns[name] = newspawn()
+		minetest.get_player_by_name(name):setpos(playerspawns[name])
 	end
 })
 
