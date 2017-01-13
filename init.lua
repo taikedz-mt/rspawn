@@ -26,11 +26,10 @@ local function newspawn(radius)
 	if not radius then
 		radius = 32
 	end
-	if radius > 200 then
-		minetest.debug("No valid spawnable location")
+	if radius > 256 then
+		minetest.log("error", "No valid spawnable location")
 		return
 	end
-	minetest.debug("Re-spawn: Trying radius "..tostring(radius))
 
 	local pos1 = {x=origin.x-radius, y=origin.y, z=origin.z-radius}
 	local pos2 = {x=origin.x+radius, y=origin.y+(radius/2), z=origin.z+radius}
@@ -51,6 +50,7 @@ local function newspawn(radius)
 	end
 
 	if #validnodes > 0 then
+		minetest.log("info", "New spawn point found with radius "..tostring(radius))
 		return validnodes[math.random(1,#validnodes)]
 	end
 
@@ -118,4 +118,10 @@ minetest.register_on_joinplayer(function(player)
 			spawnsave()
 		end
 	end)
+end)
+
+minetest.register_on_respawnplayer(function(player)
+	local name = player:get_player_name()
+	player:setpos(playerspawns[name])
+	return true
 end)
