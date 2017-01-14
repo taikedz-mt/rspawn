@@ -30,7 +30,7 @@ local function newspawn(radius)
 	end
 	if radius > 256 then
 		minetest.log("error", "No valid spawnable location")
-		return
+		return origin -- always return a position of sorts
 	end
 
 	local pos1 = {x=origin.x-radius, y=origin.y, z=origin.z-radius}
