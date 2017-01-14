@@ -72,6 +72,18 @@ minetest.register_chatcommand("newspawn", {
 	end
 })
 
+minetest.register_privilege("setspawn", "Can manually set a spawn point")
+
+minetest.register_chatcommand("setspawn", {
+	description = "Assign current position as spawn position.",
+	params = "",
+	privs = "setspawn",
+	func = function(name)
+		playerspawns[name] = minetest.get_player_by_name(name):getpos()
+		spawnsave()
+	end
+})
+
 function spawnsave()
 	local serdata = minetest.serialize(playerspawns)
 	if not serdata then
