@@ -4,6 +4,8 @@ local adminname = minetest.setting_get("name") or "singleplayer"
 local playerspawns = {}
 local spawnsfile = minetest.get_worldpath().."/dynamicspawns.lua.ser"
 
+local bedspawn = minetest.setting_getbool("enable_bed_respawn")
+
 minetest.register_privilege("spawn", "Can teleport to spawn position.")
 
 
@@ -122,6 +124,14 @@ end)
 
 minetest.register_on_respawnplayer(function(player)
 	local name = player:get_player_name()
+	if bedspawn == true then
+		local pos = beds.spawn[name]
+		if pos then
+			player:setpos(pos)
+			return true
+		end
+	end
+	-- And if no bed, nor bed spwawning not active:
 	player:setpos(playerspawns[name])
 	return true
 end)
