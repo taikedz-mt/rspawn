@@ -69,6 +69,7 @@ minetest.register_chatcommand("newspawn", {
 		playerspawns[name] = newspawn()
 		minetest.get_player_by_name(name):setpos(playerspawns[name])
 		spawnsave()
+		minetest.chat_send_player(name, "New spawn set !")
 	end
 })
 
@@ -81,6 +82,7 @@ minetest.register_chatcommand("setspawn", {
 	func = function(name)
 		playerspawns[name] = minetest.get_player_by_name(name):getpos()
 		spawnsave()
+		minetest.chat_send_player(name, "New spawn set !")
 	end
 })
 
@@ -111,16 +113,10 @@ end
 spawnload()
 
 minetest.register_on_newplayer(function(player)
-	minetest.after(1,function()
-		local name = player:get_player_name()
-
-		 -- Set immediately so that joinplayer does not get triggered whilst we're stil looking
-		playerspawns[name] = player:getpos()
-
-		playerspawns[name] = newspawn()
-		player:setpos(playerspawns[name])
-		spawnsave()
-	end)
+	local name = player:get_player_name()
+	playerspawns[name] = player:getpos()
+	spawnsave()
+	return
 end)
 
 minetest.register_on_joinplayer(function(player)
