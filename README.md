@@ -18,7 +18,7 @@ Players are each given their own randomized spawn point near the spawn origin on
 
 ### Spawn Anywhere
 
-If `spawn_anywhere` is set in minetest.conf, any new player can spawn anywhere in the world. In the case of a server, players can spawn very far from eachother, and maybe not meet anybody for a long time ...!
+If `spawn_anywhere` is set in minetest.conf, any *new* player will be given a spawn point anywhere in the world. In the case of a server, players can be given spawns very far from eachother, and maybe not meet anybody for a long time ...!
 
 ## Considerations for a server
 
