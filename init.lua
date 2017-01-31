@@ -7,6 +7,9 @@ local playerspawns = {}
 local spawnsfile = minetest.get_worldpath().."/dynamicspawns.lua.ser"
 
 local bedspawn = minetest.setting_getbool("enable_bed_respawn")
+if bedspawn ~= false then
+	bedspawn = true
+end
 
 minetest.register_privilege("spawn", "Can teleport to spawn position.")
 
