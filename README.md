@@ -13,13 +13,18 @@ Players are each given their own randomized spawn point near the spawn origin on
 * Players will not spawn in spaces that are protected by any other player than the Server Admin.
 * Additional commands
 	* Players can request a new spawn point by typing `/newspawn` if they have the `newspawn` privilege.
-	* Players can set their spawn point by typeing `/setspawn` if they have the `setspawn` privelege.
+	* Players can set their spawn point by typing `/setspawn` if they have the `setspawn` privelege.
+* Secondary mode: `spawn_anywhere`
+
+### Spawn Anywhere
+
+If `spawn_anywhere` is set in minetest.conf, any new player can spawn anywhere in the world. In the case of a server, players can spawn very far from eachother, and maybe not meet anybody for a long time ...!
 
 ## Considerations for a server
 
 If running on a server consider the following
 
-* make sure the space around the origin is clear of ownership, or owned by teh server admin
+* make sure the space around the origin is clear of ownership, or is owned by the server admin
 * make sure there is sufficient space (try for 32 nodes radius around and above origin) and walkable nodes in the area
 
 Failure to take these into consideration will often mean that the calculation of a new spawn point will take longer and be more processor-intense.
