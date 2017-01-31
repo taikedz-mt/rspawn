@@ -8,7 +8,7 @@ Players are each given their own randomized spawn point near the spawn origin on
 
 * A normal game in singleplayer mode will still alow the player access to a spawn location
 * Player will respawn at their spawnpoint if they die.
-	* Players will respawn at their bed if this option is active
+	* Players will respawn at their bed if this option is active (default `bedspawn = true`)
 	* Their `/spawn` location will still be the randomized location.
 * Players will not spawn in spaces that are protected by any other player than the Server Admin.
 * Additional commands
