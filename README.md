@@ -1,6 +1,6 @@
 # r-Spawn for Minetest
 
-A spawn command for Minetest without needing a fixed point -- singpleayer rejoice!
+A spawn command for Minetest without needing a fixed point -- `singleplayer` rejoice!
 
 Players are each given their own randomized spawn point near the spawn origin on first joining. If no `static_spawnpoint` is defined in `minetest.conf`, the origin is 0,0,0. If static spawn point is defined, that point is used as origin instead.
 
