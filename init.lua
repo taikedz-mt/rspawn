@@ -38,7 +38,7 @@ local function newspawn(pos, radius)
 		return
 	end
 
-	minetest.debug("Trying somewhere around "..minetest.pos_to_string(pos))
+	--minetest.debug("Trying somewhere around "..minetest.pos_to_string(pos))
 
 	local breadth = radius
 	local altitude = radius/2
@@ -56,7 +56,7 @@ local function newspawn(pos, radius)
 	local airnodes = minetest.find_nodes_in_area(pos1, pos2, {"air"})
 	local validnodes = {}
 
-	minetest.debug("Found "..tostring(#airnodes).." air nodes within "..tostring(radius))
+	--minetest.debug("Found "..tostring(#airnodes).." air nodes within "..tostring(radius))
 	for _,anode in pairs(airnodes) do
 		local under = minetest.get_node( {x=anode.x, y=anode.y-1, z=anode.z} ).name
 		local over = minetest.get_node( {x=anode.x, y=anode.y+1, z=anode.z} ).name
