@@ -1,13 +1,5 @@
 rspawn = {}
 
---[[ FIXME - still not working
-The mapgen cannot keep up with the attempts to query it.
-
-Need to rework this so that emerging is done once per query, and only after some time passes do we attempt to query.
-
-Don't recursively use newspawn() !
---]]
-
 local mpath = minetest.get_modpath("rspawn")
 
 local origin = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=50, z=0}
@@ -48,7 +40,8 @@ local function forceload_free_blocks_in(pos1, pos2)
 end
 
 local function daylight_above(min_daylight, pos)
-    minetest.get_node_light(pos, 0.5)
+    local level = minetest.get_node_light(pos, 0.5)
+    return min_daylight <= level
 end
 
 function rspawn:newspawn(pos, radius)
