@@ -1,21 +1,20 @@
 rspawn = {}
+rspawn.playerspawns = {}
 
 local mpath = minetest.get_modpath("rspawn")
 
-local origin = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=50, z=0}
+-- Water level, plus one to ensure we are above the sea.
+local water_level = tonumber(minetest.settings:get("water_level", "1") )+1
 local radial_step = 16
-rspawn.adminname = minetest.setting_get("name") or "singleplayer"
 
-rspawn.spawnanywhere = minetest.setting_get("spawn_anywhere") or false
-rspawn.playerspawns = {}
+local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=50, z=0}
 
-rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn")
-if rspawn.bedspawn ~= false then
-    rspawn.bedspawn = true
-end
+rspawn.adminname = minetest.settings:get("name", "singleplayer")
+rspawn.spawnanywhere = minetest.settings:get_bool("spawn_anywhere", true)
+rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true)
 
-dofile(mpath.."/files/data.lua")
-dofile(mpath.."/files/commands.lua")
+dofile(mpath.."/src/data.lua")
+dofile(mpath.."/src/commands.lua")
 
 rspawn:spawnload()
 
@@ -25,7 +24,7 @@ local function forceload_operate(pos1, pos2, handler)
     for i=pos1.x,pos2.x,16 do
         for j=pos1.y,pos2.y,16 do
             for k=pos1.z,pos2.z,16 do
-                handler({x=1,y=j,z=k})
+                handler({x=i,y=j,z=k})
             end
         end
     end
@@ -53,7 +52,7 @@ function rspawn:newspawn(pos, radius)
     end
 
     if radius > 4*radial_step then
-        minetest.debug("No valid spawnable location around "..minetest.pos_to_string(pos))
+        minetest.debug("__ No valid spawnable location around "..minetest.pos_to_string(pos))
         return
     end
 
@@ -62,7 +61,7 @@ function rspawn:newspawn(pos, radius)
     local breadth = radius/2
     local altitude = radius*2
 
-    local pos1 = {x=pos.x-breadth, y=pos.y-altitude/2, z=pos.z-breadth}
+    local pos1 = {x=pos.x-breadth, y=pos.y, z=pos.z-breadth}
     local pos2 = {x=pos.x+breadth, y=pos.y+altitude, z=pos.z+breadth}
 
     minetest.debug("Searching "..minetest.pos_to_string(pos1).." to "..minetest.pos_to_string(pos2))
@@ -104,12 +103,12 @@ end
 
 function rspawn:genpos()
     -- Generate a random position, and derive a new spawn position
-    local pos = origin
+    local pos = static_spawnpoint
 
     if rspawn.spawnanywhere then
         pos = {
             x = math.random(-30000,30000),
-            y = math.random(0, 10),
+            y = math.random(water_level, water_level+10),
             z = math.random(-30000,30000),
         }
     end
@@ -134,10 +133,14 @@ function rspawn:set_new_playerspawn(player, args)
 
     if spawnpos then
         rspawn.playerspawns[name] = spawnpos
-        player:setpos(rspawn.playerspawns[name])
         rspawn:spawnsave()
         return spawnpos
     end
+end
+
+local function confirm_new_spawn(name, newpos)
+    minetest.chat_send_player(name, "New spawn set at "..minetest.pos_to_string(newpos))
+    minetest.get_player_by_name(name):setpos(rspawn.playerspawns[name])
 end
 
 function rspawn:double_set_new_playerspawn(player, attempts)
@@ -148,19 +151,27 @@ function rspawn:double_set_new_playerspawn(player, attempts)
     minetest.chat_send_player(name, tostring(attempts)..": Searching for a suitable spawn around "..cpos)
 
     local newpos = rspawn:set_new_playerspawn(player, cpos)
+
     if not newpos then
+        -- Repeat only after some time: give the server time to get through previous emerge calls
         minetest.after(4,function()
+            -- Second attempt at the same location - emerge calls should have yielded
+            --   map data to work with
             newpos = rspawn:set_new_playerspawn(player, cpos)
+
             if not newpos then
                 if attempts > 0 then
+                    -- Repeat the process at a new location
                     rspawn:double_set_new_playerspawn(player, attempts - 1)
                 else
                     minetest.chat_send_player(name, "! Could not identify suitable spawn location (try again?)")
                 end
             else
-                minetest.chat_send_player(name, "New spawn set at "..minetest.pos_to_string(newpos))
+                confirm_new_spawn(name, newpos)
             end
         end)
+    else
+        confirm_new_spawn(name, newpos)
     end
 end
 
