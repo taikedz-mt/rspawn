@@ -167,9 +167,11 @@ end
 minetest.register_on_joinplayer(function(player)
     -- Use the recursive mode - it is not acceptable for a player
     --   not to receive a randomized spawn
-    if not rspawn.playerspawns[player:get_player_name()] then
-        rspawn:double_set_new_playerspawn(player, 10)
-    end
+    minetest.after(1,function()
+        if not rspawn.playerspawns[player:get_player_name()] then
+            rspawn:double_set_new_playerspawn(player, 10)
+        end
+    end)
 end)
 
 minetest.register_on_respawnplayer(function(player)

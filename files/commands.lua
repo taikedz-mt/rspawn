@@ -79,7 +79,7 @@ minetest.register_globalstep(function(dtime)
         playertime = playertime - shavetime
         if playertime <= 0 then
             newspawn_cooldown[playername] = nil
-            minetest.chat_send_player("/newspawn available")
+            minetest.chat_send_player(playername, "/newspawn available")
         else
             newspawn_cooldown[playername] = playertime
         end
