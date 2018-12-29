@@ -42,6 +42,5 @@ Note that the spawn generation is performed in the background on a timer, allowi
 ## License
 
 (C) 2017 Tai "DuCake" Kedzierski
-based originally on the mod uploaded by everamzah
 
 Provided under the terms of the LGPL v3.0
