@@ -16,6 +16,8 @@ rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true)
 dofile(mpath.."/src/data.lua")
 dofile(mpath.."/src/commands.lua")
 
+local dbg = dofile(mpath.."/src/debugging.lua")
+
 rspawn:spawnload()
 
 local function forceload_operate(pos1, pos2, handler)
@@ -52,11 +54,11 @@ function rspawn:newspawn(pos, radius)
     end
 
     if radius > 4*radial_step then
-        minetest.debug("__ No valid spawnable location around "..minetest.pos_to_string(pos))
+        dbg("__ No valid spawnable location around "..minetest.pos_to_string(pos))
         return
     end
 
-    minetest.debug("Trying somewhere around "..minetest.pos_to_string(pos))
+    dbg("Trying somewhere around "..minetest.pos_to_string(pos))
 
     local breadth = radius/2
     local altitude = radius*2
@@ -64,7 +66,7 @@ function rspawn:newspawn(pos, radius)
     local pos1 = {x=pos.x-breadth, y=pos.y, z=pos.z-breadth}
     local pos2 = {x=pos.x+breadth, y=pos.y+altitude, z=pos.z+breadth}
 
-    minetest.debug("Searching "..minetest.pos_to_string(pos1).." to "..minetest.pos_to_string(pos2))
+    dbg("Searching "..minetest.pos_to_string(pos1).." to "..minetest.pos_to_string(pos2))
 
     minetest.emerge_area(pos1, pos2)
     forceload_blocks_in(pos1, pos2)
@@ -72,7 +74,7 @@ function rspawn:newspawn(pos, radius)
     local airnodes = minetest.find_nodes_in_area(pos1, pos2, {"air"})
     local validnodes = {}
 
-    minetest.debug("Found "..tostring(#airnodes).." air nodes within "..tostring(radius))
+    dbg("Found "..tostring(#airnodes).." air nodes within "..tostring(radius))
     for _,anode in pairs(airnodes) do
         local under = minetest.get_node( {x=anode.x, y=anode.y-1, z=anode.z} ).name
         local over = minetest.get_node( {x=anode.x, y=anode.y+1, z=anode.z} ).name
@@ -150,6 +152,7 @@ function rspawn:double_set_new_playerspawn(player, attempts)
 
     minetest.chat_send_player(name, tostring(attempts)..": Searching for a suitable spawn around "..cpos)
 
+    dbg("Primary check on "..cpos)
     local newpos = rspawn:set_new_playerspawn(player, cpos)
 
     if not newpos then
@@ -157,6 +160,7 @@ function rspawn:double_set_new_playerspawn(player, attempts)
         minetest.after(4,function()
             -- Second attempt at the same location - emerge calls should have yielded
             --   map data to work with
+            dbg("Secondary check on "..cpos)
             newpos = rspawn:set_new_playerspawn(player, cpos)
 
             if not newpos then
