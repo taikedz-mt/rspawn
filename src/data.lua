@@ -12,15 +12,24 @@ function rspawn:spawnsave()
 	end
 	file:write(serdata)
 	file:close()
+
+    pregens = rspawn.playerspawns["pre gen"] or {}
+    minetest.debug("Wrote rspawn data with "..tostring(#pregens).." pregen nodes")
 end
 
 function rspawn:spawnload()
 	local file, err = io.open(spawnsfile, "r")
-	if err then
-		minetest.log("error", "[spawn] Data read failed")
-		return
-	end
-	rspawn.playerspawns = minetest.deserialize(file:read("*a"))
-	file:close()
+	if not err then
+        rspawn.playerspawns = minetest.deserialize(file:read("*a"))
+        file:close()
+	else
+		minetest.log("error", "[spawn] Data read failed - initializing")
+        rspawn.playerspawns = {}
+    end
+
+    pregens = rspawn.playerspawns["pre gen"] or {}
+    rspawn.playerspawns["pre gen"] = pregens
+
+    minetest.debug("Loaded rspawn data with "..tostring(#pregens).." pregen nodes")
 end
 

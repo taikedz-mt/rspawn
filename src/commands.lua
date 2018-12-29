@@ -35,18 +35,27 @@ minetest.register_chatcommand("setspawn", {
 	end
 })
 
+local function request_new_spawn(username, targetname)
+    local timername = username
+    if targetname ~= username then
+        timername = username.." "..targetname
+    end
+
+    if not newspawn_cooldown[timername] then
+        rspawn:renew_player_spawn(targetname)
+        newspawn_cooldown[timername] = 300
+    else
+        minetest.chat_send_player(username, tostring(math.ceil(newspawn_cooldown[timername])).."sec until you can randomize a new spawn for "..targetname)
+    end
+end
+
 minetest.register_chatcommand("newspawn", {
 	description = "Randomly select a new spawn position.",
 	params = "",
 	privs = "newspawn",
 	func = function(name, args)
-        if not newspawn_cooldown[name] then
-            rspawn:double_set_new_playerspawn(minetest.get_player_by_name(name), 2)
-            newspawn_cooldown[name] = 300
-        else
-            minetest.chat_send_player(name, tostring(math.ceil(newspawn_cooldown[name])).."sec until you can randomize a new spawn.")
-        end
-	end
+        request_new_spawn(name, name)
+    end
 })
 
 minetest.register_chatcommand("playerspawn", {
@@ -54,13 +63,7 @@ minetest.register_chatcommand("playerspawn", {
 	params = "playername",
 	privs = "spawnadmin",
 	func = function(adminname, playername)
-        local jointname = adminname.."--"..playername
-        if not newspawn_cooldown[jointname] then
-            rspawn:double_set_new_playerspawn(minetest.get_player_by_name(playername), 2)
-            newspawn_cooldown[jointname] = 60
-        else
-            minetest.chat_send_player(adminname, tostring(math.ceil(newspawn_cooldown[jointname])).."sec until you can randomize a new spawn for "..playername)
-        end
+        request_new_spawn(adminname, playername)
 	end
 })
 

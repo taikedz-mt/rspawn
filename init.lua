@@ -3,78 +3,74 @@ rspawn.playerspawns = {}
 
 local mpath = minetest.get_modpath("rspawn")
 
+local function notnil_or(d, v)
+    if v == nil then
+        return d
+    else
+        return v
+    end
+end
+
 -- Water level, plus one to ensure we are above the sea.
 local water_level = tonumber(minetest.settings:get("water_level", "1") )+1
 local radial_step = 16
 
-local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=50, z=0}
+-- Setting with no namespace for interoperability
+local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=0, z=0}
 
+-- Setting from beds mod
+rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true) -- from beds mod
+
+-- Detect server mode, of sorts
 rspawn.adminname = minetest.settings:get("name", "singleplayer")
-rspawn.spawnanywhere = minetest.settings:get_bool("spawn_anywhere", true)
-rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true)
 
+-- rSpawn specific settings
+rspawn.debug_on = minetest.settings:get_bool("rspawn.debug")
+rspawn.spawnanywhere = notnil_or(true, minetest.settings:get_bool("rspawn.spawn_anywhere") )
+rspawn.kick_on_fail = notnil_or(false, minetest.settings:get_bool("rspawn.kick_on_fail"))
+rspawn.max_pregen_spawns = tonumber(minetest.settings:get("rspawn.max_pregen") or 5)
+rspawn.search_radius = tonumber(minetest.settings:get("rspawn.search_radius") or 32)
+rspawn.gen_frequency = tonumber(minetest.settings:get("rspawn.gen_frequency") or 30)
+    
 dofile(mpath.."/src/data.lua")
 dofile(mpath.."/src/commands.lua")
+dofile(mpath.."/src/forceload.lua")
+dofile(mpath.."/src/debugging.lua")
 
-local dbg = dofile(mpath.."/src/debugging.lua")
+
+
 
 rspawn:spawnload()
-
-local function forceload_operate(pos1, pos2, handler)
-    local i,j,k
-
-    for i=pos1.x,pos2.x,16 do
-        for j=pos1.y,pos2.y,16 do
-            for k=pos1.z,pos2.z,16 do
-                handler({x=i,y=j,z=k})
-            end
-        end
-    end
-end
-
-local function forceload_blocks_in(pos1, pos2)
-    forceload_operate(pos1, pos2, minetest.forceload_block)
-end
-
-local function forceload_free_blocks_in(pos1, pos2)
-    forceload_operate(pos1, pos2, minetest.forceload_free_block)
-end
 
 local function daylight_above(min_daylight, pos)
     local level = minetest.get_node_light(pos, 0.5)
     return min_daylight <= level
 end
 
-function rspawn:newspawn(pos, radius)
-    -- Given a seed position and a radius, find an exact spawn location
-    --   that is walkable and with 2 air nodes above it
-
-    if not radius then
-        radius = radial_step
-    end
-
-    if radius > 4*radial_step then
-        dbg("__ No valid spawnable location around "..minetest.pos_to_string(pos))
-        return
-    end
-
-    dbg("Trying somewhere around "..minetest.pos_to_string(pos))
-
-    local breadth = radius/2
+function rspawn:get_positions_for(pos, radius)
+    local breadth = radius
     local altitude = radius*2
 
     local pos1 = {x=pos.x-breadth, y=pos.y, z=pos.z-breadth}
     local pos2 = {x=pos.x+breadth, y=pos.y+altitude, z=pos.z+breadth}
 
-    dbg("Searching "..minetest.pos_to_string(pos1).." to "..minetest.pos_to_string(pos2))
+    return pos1,pos2
+end
 
-    minetest.emerge_area(pos1, pos2)
-    forceload_blocks_in(pos1, pos2)
+function rspawn:newspawn(pos, radius)
+    -- Given a seed position and a radius, find an exact spawn location
+    --   that is walkable and with 2 air nodes above it
+
+    rspawn:debug("Trying somewhere around "..minetest.pos_to_string(pos))
+
+    local pos1,pos2 = rspawn:get_positions_for(pos, radius)
+
+    rspawn:debug("Searching "..minetest.pos_to_string(pos1).." to "..minetest.pos_to_string(pos2))
 
     local airnodes = minetest.find_nodes_in_area(pos1, pos2, {"air"})
     local validnodes = {}
 
-    dbg("Found "..tostring(#airnodes).." air nodes within "..tostring(radius))
+    rspawn:debug("Found "..tostring(#airnodes).." air nodes within "..tostring(radius))
     for _,anode in pairs(airnodes) do
         local under = minetest.get_node( {x=anode.x, y=anode.y-1, z=anode.z} ).name
         local over = minetest.get_node( {x=anode.x, y=anode.y+1, z=anode.z} ).name
@@ -90,17 +86,11 @@ function rspawn:newspawn(pos, radius)
     end
 
     if #validnodes > 0 then
-        minetest.log("info", "New spawn point found with radius "..tostring(radius))
-        forceload_free_blocks_in(pos1, pos2)
+        rspawn:debug("Valid spawn points found with radius "..tostring(radius))
         return validnodes[math.random(1,#validnodes)]
+    else
+        rspawn:debug("No valid air nodes")
     end
-
-    local pos = rspawn:newspawn(pos, radius+radial_step)
-    if not pos then
-        -- Nothing found, do cleanup with this largest forceloaded area
-        forceload_free_blocks_in(pos1, pos2)
-    end
-    return pos
 end
 
 function rspawn:genpos()
@@ -110,7 +100,8 @@ function rspawn:genpos()
     if rspawn.spawnanywhere then
         pos = {
             x = math.random(-30000,30000),
-            y = math.random(water_level, water_level+10),
+            --y = math.random(water_level, water_level+20),
+            y = water_level, -- always at waterlevel
             z = math.random(-30000,30000),
         }
     end
@@ -118,75 +109,62 @@ function rspawn:genpos()
     return pos
 end
 
-function rspawn:set_new_playerspawn(player, args)
-    local newpos
-    if args == "here" then
-        newpos = player:get_pos()
-    elseif args then
-        newpos = minetest.string_to_pos(args)
-    end
-
-    if not newpos then
-        newpos = rspawn:genpos()
-    end
-
-    local spawnpos = rspawn:newspawn(newpos)
-    local name = player:get_player_name()
-
-    if spawnpos then
-        rspawn.playerspawns[name] = spawnpos
-        rspawn:spawnsave()
-        return spawnpos
-    end
-end
-
 local function confirm_new_spawn(name, newpos)
-    minetest.chat_send_player(name, "New spawn set at "..minetest.pos_to_string(newpos))
+    local spos = minetest.pos_to_string(newpos)
+
+    rspawn.debug("Saving spawn for "..name, spos)
+    rspawn.playerspawns[name] = newpos
+    rspawn:spawnsave()
+
+    minetest.chat_send_player(name, "New spawn set at "..spos)
+
     minetest.get_player_by_name(name):setpos(rspawn.playerspawns[name])
 end
 
-function rspawn:double_set_new_playerspawn(player, attempts)
-    local cpos = minetest.pos_to_string(rspawn:genpos())
-    local name = player:get_player_name()
-    attempts = attempts or 1
+function rspawn:set_newplayer_spawn(player)
+    local playername = player:get_player_name()
 
-    minetest.chat_send_player(name, tostring(attempts)..": Searching for a suitable spawn around "..cpos)
+    if not rspawn.playerspawns[playername] then
+        local newpos = rspawn:get_next_spawn()
 
-    dbg("Primary check on "..cpos)
-    local newpos = rspawn:set_new_playerspawn(player, cpos)
+        if newpos then
+            confirm_new_spawn(playername, newpos)
 
-    if not newpos then
-        -- Repeat only after some time: give the server time to get through previous emerge calls
-        minetest.after(4,function()
-            -- Second attempt at the same location - emerge calls should have yielded
-            --   map data to work with
-            dbg("Secondary check on "..cpos)
-            newpos = rspawn:set_new_playerspawn(player, cpos)
+        else
+            if rspawn.adminname ~= "singleplayer" or playername ~= rspawn.adminname then
+                minetest.chat_send_player(playername, "Please wait until a spawn point is available ...")
+                minetest.after(15, function()
+                    rspawn:set_newplayer_spawn(player)
+                end)
+            elseif rspawn.kick_on_fail then
+                minetest.kick_player(playername, "No personalized spawn points available - please try again later.")
 
-            if not newpos then
-                if attempts > 0 then
-                    -- Repeat the process at a new location
-                    rspawn:double_set_new_playerspawn(player, attempts - 1)
-                else
-                    minetest.chat_send_player(name, "! Could not identify suitable spawn location (try again?)")
-                end
             else
-                confirm_new_spawn(name, newpos)
+                minetest.chat_send_player(playername, "Could not get custom spawn! Retrying in "..rspawn.gen_frequency.." seconds")
+
+                minetest.after(gen_frequency, function()
+                    rspawn:set_newplayer_spawn(player)
+                end)
             end
-        end)
+        end
+    end
+end
+
+function rspawn:renew_player_spawn(playername)
+    local player = minetest.get_player_by_name(playername)
+
+    local newpos = rspawn:get_next_spawn()
+
+    if newpos then
+        confirm_new_spawn(playername, newpos)
+
     else
-        confirm_new_spawn(name, newpos)
+        minetest.chat_send_player(playername, "Could not get custom spawn!")
     end
 end
 
 minetest.register_on_joinplayer(function(player)
-    -- Use the recursive mode - it is not acceptable for a player
-    --   not to receive a randomized spawn
-    minetest.after(1,function()
-        if not rspawn.playerspawns[player:get_player_name()] then
-            rspawn:double_set_new_playerspawn(player, 10)
-        end
-    end)
+    rspawn:set_newplayer_spawn(player)
 end)
 
 minetest.register_on_respawnplayer(function(player)
@@ -203,3 +181,5 @@ minetest.register_on_respawnplayer(function(player)
     player:setpos(rspawn.playerspawns[name])
     return true
 end)
+
+dofile(mpath.."/src/pregeneration.lua")

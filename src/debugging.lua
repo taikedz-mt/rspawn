@@ -1,7 +1,5 @@
-local debug_on = minetest.settings:get_bool("rspawn.debug")
-
-local function debug(message, data)
-    if not debug_on then
+function rspawn:debug(message, data)
+    if not rspawn.debug_on then
         return
     end
 
@@ -14,5 +12,3 @@ local function debug(message, data)
 
     minetest.debug(debug_string)
 end
-
-return debug
