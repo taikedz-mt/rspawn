@@ -95,7 +95,6 @@ function rspawn:newspawn(pos, radius)
     if #validnodes > 0 then
         rspawn:debug("Valid spawn points found with radius "..tostring(radius))
         local newpos = validnodes[math.random(1,#validnodes)]
-        set_default_node({x=newpos.x,y=newpos.y-1,z=newpos.z})
 
         return newpos
     else
@@ -129,6 +128,9 @@ local function confirm_new_spawn(name, newpos)
     minetest.chat_send_player(name, "New spawn set at "..spos)
 
     minetest.get_player_by_name(name):setpos(rspawn.playerspawns[name])
+    minetest.after(0.5,function()
+        set_default_node({x=newpos.x,y=newpos.y-1,z=newpos.z})
+    end)
 end
 
 function rspawn:set_newplayer_spawn(player)
