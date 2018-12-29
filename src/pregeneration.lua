@@ -69,3 +69,8 @@ function rspawn:get_next_spawn()
 
     return nspawn
 end
+
+-- On load...
+
+push_new_spawn()
+
