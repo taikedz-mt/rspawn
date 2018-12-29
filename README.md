@@ -1,10 +1,6 @@
 # r-Spawn for Minetest
 
-A spawn engine for Minetest without needing a fixed point.
-
-Players are each given their own randomized spawn point near the spawn origin on first joining.
-
-If `static_spawnpoint` is defined in `minetest.conf`, that point is used as spawn point instead (compatibility)
+Causes players to receive a spawn point anywhere on the map. Players will likely spawn veeery far from eachother into prisitine areas.
 
 ## Features
 
@@ -17,8 +13,6 @@ If `static_spawnpoint` is defined in `minetest.conf`, that point is used as spaw
 	* Players can request a new spawn point by typing `/newspawn` if they have the `newspawn` privilege.
 	* Players can set their spawn point by typing `/setspawn` if they have the `setspawn` privelege.
     * Players can assign a new random spawn for another player using `/playerspawn` if they have the `spawnadmin` privilege.
-
-In the case of a server, players can be given spawns very far from eachother, and maybe not meet anybody for a long time ...!
 
 KNOWN ISSUE - Any player not yet registered with a spawn point will be given a spawn point anywhere in the world. If applying retroactively to a server, this will cause existing players to be re-spawned once.
 
