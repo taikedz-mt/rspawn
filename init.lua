@@ -31,6 +31,7 @@ rspawn.kick_on_fail = notnil_or(false, minetest.settings:get_bool("rspawn.kick_o
 rspawn.max_pregen_spawns = tonumber(minetest.settings:get("rspawn.max_pregen") or 5)
 rspawn.search_radius = tonumber(minetest.settings:get("rspawn.search_radius") or 32)
 rspawn.gen_frequency = tonumber(minetest.settings:get("rspawn.gen_frequency") or 30)
+rspawn.spawn_block = minetest.settings:get("rspawn.spawn_block")
     
 dofile(mpath.."/src/data.lua")
 dofile(mpath.."/src/commands.lua")
@@ -41,6 +42,12 @@ dofile(mpath.."/src/debugging.lua")
 
 
 rspawn:spawnload()
+
+local function set_default_node(pos)
+    if rspawn.spawn_block then
+        minetest.set_node(pos, {name=rspawn.spawn_block})
+    end
+end
 
 local function daylight_above(min_daylight, pos)
     local level = minetest.get_node_light(pos, 0.5)
@@ -87,7 +94,10 @@ function rspawn:newspawn(pos, radius)
 
     if #validnodes > 0 then
         rspawn:debug("Valid spawn points found with radius "..tostring(radius))
-        return validnodes[math.random(1,#validnodes)]
+        local newpos = validnodes[math.random(1,#validnodes)]
+        set_default_node({x=newpos.x,y=newpos.y-1,z=newpos.z})
+
+        return newpos
     else
         rspawn:debug("No valid air nodes")
     end

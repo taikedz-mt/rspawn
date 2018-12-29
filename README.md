@@ -37,6 +37,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
     * default `true`
     * if `false`, will randomize around the static spawn point
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
+* `rspawn.spawn_block` - place this custom block under the user's spawn point
 * `rspawn.debug` - whether to print debugging messages, default `false`
 
 ## License
