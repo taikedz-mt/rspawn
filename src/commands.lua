@@ -8,18 +8,57 @@ minetest.register_privilege("setspawn", "Can manually set a spawn point")
 minetest.register_privilege("newspawn", "Can get a new randomized spawn position.")
 minetest.register_privilege("spawnadmin", "Can clean up timers and set new spawns for players.")
 
+-- Splitter
+
+local function splitstring(sdata, sep)
+    local idx
+    local tdata = {}
+
+    while sdata ~= "" do
+        idx = sdata:find(sep)
+        
+        if idx then
+            tdata[#tdata+1] = sdata:sub(1,idx-1)
+            sdata = sdata:sub(idx+1, idx:len() )
+
+        else -- last element
+            tdata[#tdata+1] = sdata
+            break
+        end
+    end
+
+    return tdata
+end
+
 -- Commands
 
 minetest.register_chatcommand("spawn", {
 	description = "Teleport to spawn position.",
-	params = "",
+	params = "[ invite <player> | accept | decline ]",
 	privs = "spawn",
-	func = function(name)
+	func = function(name, args)
 		local target = rspawn.playerspawns[name]
-        if target then
-		    minetest.get_player_by_name(name):setpos(target)
+        local args = splitstring(args, " ")
+
+        if #args == 0 then
+            if target then
+                minetest.get_player_by_name(name):setpos(target)
+            else
+                minetest.chat_send_player(name, "You have no spawn position!")
+            end
+
+        elseif args[1] == "accept" then
+            accept_invitation(name) -- TODO, only one at a time, must be accepted or declined
+
+        elseif args[1] == "decline" then
+            decline_invitation(name) -- TODO, free up invitation slot
+
+        elseif#args == 2 and  args[1] == "invite" then
+            invite_player_fromto(name, args[2]) -- TODO, and DO move player - not to be used lightly
+        
         else
-            minetest.chat_send_player(name, "You have no spawn position!")
+            minetest.chat_send_player(name, "Please check '/help spawn'")
+
         end
 	end
 })
