@@ -26,21 +26,23 @@ local function push_new_spawn()
     local random_pos = rspawn:genpos()
     local pos1,pos2 = rspawn:get_positions_for(random_pos, rspawn.search_radius)
 
-    rspawn:forceload_blocks_in(pos1, pos2)
+    if rspawn:forceload_blocks_in(pos1, pos2) then
+        minetest.after(rspawn.gen_frequency*0.8, function()
+            -- Let the forceload do its thing, then act
 
-    minetest.after(10, function()
-        -- Let the forceload do its thing, then act
+            local newpos = rspawn:newspawn(random_pos, rspawn.search_radius)
+            if newpos then
+                rspawn:debug("Generated "..minetest.pos_to_string(newpos))
+                set_pgen(len_pgen()+1, newpos )
+            else
+                rspawn:debug("Failed to generate new spawn point to push")
+            end
 
-        local newpos = rspawn:newspawn(random_pos, rspawn.search_radius)
-        if newpos then
-            rspawn:debug("Generated "..minetest.pos_to_string(newpos))
-            set_pgen(len_pgen()+1, newpos )
-        else
-            rspawn:debug("Failed to generate new spawn point to push")
-        end
-
-        rspawn:forceload_free_blocks_in(pos1, pos2)
-    end)
+            rspawn:forceload_free_blocks_in(pos1, pos2)
+        end)
+    else
+        rspawn:debug("Failed to push new spawn point - preexisting operation took precedence.")
+    end
 end
 
 minetest.register_globalstep(function(dtime)
@@ -63,8 +65,6 @@ function rspawn:get_next_spawn()
         nspawn = get_pgen(len_pgen() )
         rspawn:debug("Returning pregenerated spawn",nspawn)
         set_pgen(len_pgen(), nil)
-    else
-        push_new_spawn()
     end
 
     return nspawn

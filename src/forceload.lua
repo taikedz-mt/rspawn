@@ -1,3 +1,6 @@
+local forceloading_happening = false
+
+
 local function forceload_operate(pos1, pos2, handler)
     local i,j,k
 
@@ -11,13 +14,22 @@ local function forceload_operate(pos1, pos2, handler)
 end
 
 function rspawn:forceload_blocks_in(pos1, pos2)
+    if forceloading_happening then
+        rspawn:debug("Forceload operation already underway - abort")
+        return false
+    end
+
     rspawn:debug("Forceloading blocks -----------¬", {pos1=minetest.pos_to_string(pos1),pos2=minetest.pos_to_string(pos2)})
+    forceloading_happening = true
     minetest.emerge_area(pos1, pos2)
     forceload_operate(pos1, pos2, minetest.forceload_block)
+
+    return true
 end
 
 function rspawn:forceload_free_blocks_in(pos1, pos2)
     rspawn:debug("Freeing forceloaded blocks ____/", {pos1=minetest.pos_to_string(pos1),pos2=minetest.pos_to_string(pos2)})
     forceload_operate(pos1, pos2, minetest.forceload_free_block)
+    forceloading_happening = false
 end
 

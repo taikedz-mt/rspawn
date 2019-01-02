@@ -19,7 +19,7 @@ local function splitstring(sdata, sep)
         
         if idx then
             tdata[#tdata+1] = sdata:sub(1,idx-1)
-            sdata = sdata:sub(idx+1, idx:len() )
+            sdata = sdata:sub(idx+1, sdata:len() )
 
         else -- last element
             tdata[#tdata+1] = sdata
@@ -33,8 +33,8 @@ end
 -- Commands
 
 minetest.register_chatcommand("spawn", {
-	description = "Teleport to spawn position.",
-	params = "[ invite <player> | accept | decline ]",
+	description = "Teleport to spawn position, or manage invitations. See you current invitation with '/spawn invite'",
+	params = "[ invite [<player>] | accept | decline ]",
 	privs = "spawn",
 	func = function(name, args)
 		local target = rspawn.playerspawns[name]
@@ -43,23 +43,35 @@ minetest.register_chatcommand("spawn", {
         if #args == 0 then
             if target then
                 minetest.get_player_by_name(name):setpos(target)
+                return
+
             else
                 minetest.chat_send_player(name, "You have no spawn position!")
+                return
             end
 
         elseif args[1] == "accept" then
-            accept_invitation(name) -- TODO, only one at a time, must be accepted or declined
+            rspawn.invites:accept(name)
+                -- TODO, only one at a time, must be accepted or declined, and DO move player - not to be used lightly
+            return
 
         elseif args[1] == "decline" then
-            decline_invitation(name) -- TODO, free up invitation slot
+            rspawn.invites:decline(name) -- TODO, free up invitation slot
+            return
 
-        elseif#args == 2 and  args[1] == "invite" then
-            invite_player_fromto(name, args[2]) -- TODO, and DO move player - not to be used lightly
-        
-        else
-            minetest.chat_send_player(name, "Please check '/help spawn'")
+        elseif args[1] == "invite" then
+            if #args == 2 then
+                rspawn.invites:invite_player_fromto(name, args[2]) -- TODO
+                return
+
+            elseif #args == 1 then
+                rspawn.invites:show_invite_for(name) -- TODO
+                return
+            end
 
         end
+        
+        minetest.chat_send_player(name, "Please check '/help spawn'")
 	end
 })
 

@@ -12,7 +12,7 @@ local function notnil_or(d, v)
 end
 
 -- Water level, plus one to ensure we are above the sea.
-local water_level = tonumber(minetest.settings:get("water_level", "1") )+1
+local water_level = tonumber(minetest.settings:get("water_level", "0") )
 local radial_step = 16
 
 -- Setting with no namespace for interoperability
@@ -34,6 +34,7 @@ rspawn.gen_frequency = tonumber(minetest.settings:get("rspawn.gen_frequency") or
 rspawn.spawn_block = minetest.settings:get("rspawn.spawn_block")
     
 dofile(mpath.."/src/data.lua")
+dofile(mpath.."/src/invites.lua")
 dofile(mpath.."/src/commands.lua")
 dofile(mpath.."/src/forceload.lua")
 dofile(mpath.."/src/debugging.lua")
@@ -87,6 +88,7 @@ function rspawn:newspawn(pos, radius)
         if under.walkable
          and not over.walkable
          and not minetest.is_protected(anode, rspawn.adminname)
+         and not (under.groups and under.groups.leaves ) -- no spawning on treetops!
          and daylight_above(7, anode) then
             validnodes[#validnodes+1] = anode
         end
@@ -109,8 +111,7 @@ function rspawn:genpos()
     if rspawn.spawnanywhere then
         pos = {
             x = math.random(-30000,30000),
-            --y = math.random(water_level, water_level+20),
-            y = water_level, -- always at waterlevel
+            y = water_level, -- always start at waterlevel
             z = math.random(-30000,30000),
         }
     end
@@ -118,7 +119,7 @@ function rspawn:genpos()
     return pos
 end
 
-local function confirm_new_spawn(name, newpos)
+function rspawn:set_player_spawn(name, newpos)
     local spos = minetest.pos_to_string(newpos)
 
     rspawn.debug("Saving spawn for "..name, spos)
@@ -140,21 +141,18 @@ function rspawn:set_newplayer_spawn(player)
         local newpos = rspawn:get_next_spawn()
 
         if newpos then
-            confirm_new_spawn(playername, newpos)
+            rspawn:set_player_spawn(playername, newpos)
 
         else
-            if rspawn.adminname ~= "singleplayer" or playername ~= rspawn.adminname then
-                minetest.chat_send_player(playername, "Please wait until a spawn point is available ...")
-                minetest.after(15, function()
-                    rspawn:set_newplayer_spawn(player)
-                end)
-            elseif rspawn.kick_on_fail then
+            -- We did not get a new position
+            
+            if rspawn.kick_on_fail then
                 minetest.kick_player(playername, "No personalized spawn points available - please try again later.")
 
             else
                 minetest.chat_send_player(playername, "Could not get custom spawn! Retrying in "..rspawn.gen_frequency.." seconds")
 
-                minetest.after(gen_frequency, function()
+                minetest.after(rspawn.gen_frequency+2, function()
                     rspawn:set_newplayer_spawn(player)
                 end)
             end
@@ -168,7 +166,7 @@ function rspawn:renew_player_spawn(playername)
     local newpos = rspawn:get_next_spawn()
 
     if newpos then
-        confirm_new_spawn(playername, newpos)
+        rspawn:set_player_spawn(playername, newpos)
 
     else
         minetest.chat_send_player(playername, "Could not get custom spawn!")
