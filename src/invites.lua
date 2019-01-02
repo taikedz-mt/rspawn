@@ -44,8 +44,8 @@ end
 function rspawn.invites:invite_player_fromto(hostname, guestname)
     local host,guest = get_players(hostname, guestname)
 
-    if err then
-        minetest.chat_send_player(hostname, err)
+    if not (host and guest) then
+        minetest.chat_send_player(hostname, err or "player not online")
         return
     end
 
@@ -69,9 +69,20 @@ local function find_levvy(player)
     -- return itemstack index, and stack itself, with qtty removed
     -- or none if not found/not enough found
     local i
+
+    if not player then
+        minetest.log("action", "Tried to access undefined player")
+        return false
+    end
+
     local pname = player:get_player_name()
     local player_inv = minetest.get_inventory({type='player', name = pname})
     local total_count = 0
+
+    if not player_inv then
+        minetest.log("action", "Could not access inventory for "..pname)
+        return false
+    end
 
     for i = 1,32 do
         local itemstack = player_inv:get_stack('main', i)
@@ -94,6 +105,11 @@ local function find_levvy(player)
 end
 
 local function consume_levvy(player)
+    if not player then
+        minetest.log("action", "Tried to access undefined player")
+        return false
+    end
+
     local i
     local pname = player:get_player_name()
     local player_inv = minetest.get_inventory({type='player', name = pname})
@@ -137,8 +153,8 @@ function rspawn.invites:accept(guestname)
 
     local host,guest = get_players(hostname, guestname)
 
-    if err then
-        minetest.chat_send_player(guestname, err)
+    if not (host and guest) then
+        minetest.chat_send_player(guestname, err or "player not online")
         return
     end
 

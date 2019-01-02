@@ -1,4 +1,4 @@
-# r-Spawn for Minetest
+# `[rspawn]` Randomized Spawning for Minetest
 
 Causes players to receive a spawn point anywhere on the map. Players will likely spawn veeery far from eachother into prisitine areas.
 
@@ -10,11 +10,26 @@ Causes players to receive a spawn point anywhere on the map. Players will likely
 * Players will not spawn in spaces that are protected by any other player than the Server Admin.
 * Commands
     * Players can return to their spawn point with the `/spawn` command if they have `spawn` privilege.
+    * Players can invite other players to join their spawn - see "Spawn invites" below
 	* Players can request a new spawn point by typing `/newspawn` if they have the `newspawn` privilege.
 	* Players can set their spawn point by typing `/setspawn` if they have the `setspawn` privelege.
     * Players can assign a new random spawn for another player using `/playerspawn` if they have the `spawnadmin` privilege.
 
 KNOWN ISSUE - Any player not yet registered with a spawn point will be given a spawn point anywhere in the world. If applying retroactively to a server, this will cause existing players to be re-spawned once.
+
+### Spawn invites
+
+Randomized spawning typically causes players to spawn far from eachother. If players wish to share a single spawn point, a player can invite another to join their spawn position.
+
+The player issuing the invite (host) must typically pay a levvy when the other player (guest) accepts.
+
+When the guest accepts:
+
+* The host will pay the levvy from their inventory
+* The guest's spawn will be set to the host's spawn position
+* The guest will be transported to their new spawn immediately
+
+This effect is permanent ; the guest cannot "undo" to retrieve their old spawn. The guest should cleanup their old spawn before leaving it. Server admins may wish to allow extended transportable inventory, like bags or ender chests, to facilitate such transitions.
 
 ## Settings
 
@@ -24,10 +39,10 @@ Note that the spawn generation is performed in the background on a timer, allowi
 
 * `name` - on servers, sets the name of the admin, players can spawn in areas protected by the admin.
 * `water_level` - Spawns are always set above water level, default `1`
-* `static_spawnpoint` - main plce the player will start at, default `{0,0,0}`
+* `static_spawnpoint` - main position the player will start at, default `{0,0,0}`
 * `enable_bed_respawn` - from `beds` mod - if active, then respawning will happen at beds, instead of randomized spawnpoint
 
-*rSpawn-specific settings*
+*rspawn-specific settings*
 
 * Settings related to spawn generation
     * `rspawn.max_pregen` - maximum number of spawn points to pre-generate, default `5`
@@ -36,6 +51,8 @@ Note that the spawn generation is performed in the background on a timer, allowi
 * `rspawn.spawn_anywhere` - whether to spawn anywhere in the world at sea level
     * default `true`
     * if `false`, will randomize around the static spawn point
+* `rspawn.levvy_name` - name of the block to use as levvy charge on the player issuing an invitation, default `default:cobble`
+* `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `99`
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
 * `rspawn.spawn_block` - place this custom block under the user's spawn point
 * `rspawn.debug` - whether to print debugging messages, default `false`
