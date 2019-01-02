@@ -134,13 +134,24 @@ function rspawn:set_player_spawn(name, newpos)
     end)
 end
 
+local function register_original_spawn(playername, pos)
+    -- We say players cannot find their original spawn after invite
+    -- That is the intended behaviour ; however we should still record this. Just in case.
+    if not rspawn.playerspawns["original spawns"] then
+        rspawn.playerspawns["original spawns"] = {}
+    end
+    rspawn.playerspawns["original spawns"][playername] = pos
+end
+
 function rspawn:set_newplayer_spawn(player)
+    -- only use for new players / players who have never had a randomized spawn
     local playername = player:get_player_name()
 
     if not rspawn.playerspawns[playername] then
         local newpos = rspawn:get_next_spawn()
 
         if newpos then
+            register_original_spawn(playername, newpos)
             rspawn:set_player_spawn(playername, newpos)
 
         else
@@ -152,7 +163,7 @@ function rspawn:set_newplayer_spawn(player)
             else
                 minetest.chat_send_player(playername, "Could not get custom spawn! Retrying in "..rspawn.gen_frequency.." seconds")
 
-                minetest.after(rspawn.gen_frequency+2, function()
+                minetest.after(rspawn.gen_frequency, function()
                     rspawn:set_newplayer_spawn(player)
                 end)
             end

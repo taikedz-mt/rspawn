@@ -60,7 +60,7 @@ function rspawn.invites:invite_player_fromto(hostname, guestname)
 
     local hostspawn_s = minetest.pos_to_string(rspawn.playerspawns[hostname])
 
-    minetest.chat_send_player(guestname, hostname.." invited you to join their spawn point.\nIf you accept, your spawn point will be set to "..hostspawn_s.." and you will be taken there immediately.\n    This cannot be undone.\n\nRun '/spawn accept' to accept, '/spawn decline' to decline and clear the invite.")
+    minetest.chat_send_player(guestname, hostname.." invited you to join their spawn point.\nIf you accept, your spawn point will be set to "..hostspawn_s.." and you will be taken there immediately.\n    WARNING: This CANNOT BE UNDONE.\n\nRun '/spawn accept' to accept, '/spawn decline' to decline and clear the invite.")
 
     minetest.chat_send_player(hostname,
         "You have invited "..guestname.." to join your spawn.\nIf they accept, you will be charged \n\n    "..levvy_qtty.." "..levvy_nicename.." \n\nwhich will be taken from your inventory."

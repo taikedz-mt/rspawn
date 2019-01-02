@@ -110,11 +110,39 @@ minetest.register_chatcommand("newspawn", {
 })
 
 minetest.register_chatcommand("playerspawn", {
-	description = "Randomly select a new spawn position for a player.",
-	params = "playername",
+	description = "Randomly select a new spawn position for a player, or use specified position, 'original' for their original spawn.",
+	params = "<playername> [<pos> | original]",
 	privs = "spawnadmin",
-	func = function(adminname, playername)
-        request_new_spawn(adminname, playername)
+	func = function(name, args)
+        if args ~= "" then
+            args = splitstring(args, " ")
+
+            if #args == 2 then
+                local tname = args[1]
+                local tpos
+
+                if args[2] == "original" then
+                    tpos = rspawn.playerspawns["original spawns"][tname]
+                    if not tpos then
+                        minetest.chat_send_player( name, "Could not find original spawn for "..tname)
+                        minetest.chat_send_player(tname, "Could not find original spawn for "..tname)
+                        return
+                    end
+                else
+                    tpos = minetest.string_to_pos(args[2])
+                end
+
+                if tpos then
+                    rspawn:set_player_spawn(tname, tpos)
+                    return
+                end
+            elseif #args == 1 then
+                request_new_spawn(name, args[1])
+                return
+            end
+        end
+
+        minetest.chat_send_player(name, "Error. See '/help playerspawn'")
 	end
 })
 
