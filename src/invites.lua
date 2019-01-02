@@ -6,16 +6,18 @@ rspawn.invitations = {}
 local invite_charge = {}
 
 levvy_name = minetest.settings:get("rspawn.levvy_name") or "default:cobble"
-levvy_qtty = minetest.settings:get("rspawn.levvy_qtty") or 99
+levvy_qtty = tonumber(minetest.settings:get("rspawn.levvy_qtty")) or 99
 levvy_nicename = "cobblestone"
 
-if minetest.registered_nodes[levvy_name] then
-    levvy_nicename = minetest.registered_nodes[levvy_name].description
-else
-    minetest.debug("No such node "..levvy_name.." -- reverting to defaults.")
-    levvy_name = "default:cobble"
-    levvy_qtty = 99
-end
+minetest.after(0,function()
+    if minetest.registered_items[levvy_name] then
+        levvy_nicename = minetest.registered_nodes[levvy_name].description
+    else
+        minetest.debug("No such item "..levvy_name.." -- reverting to defaults.")
+        levvy_name = "default:cobble"
+        levvy_qtty = 99
+    end
+end)
 
 local function get_players(p1name, p2name)
     -- Check both players are online.
