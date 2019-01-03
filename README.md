@@ -10,10 +10,10 @@ Causes players to receive a spawn point anywhere on the map. Players will likely
 * Players will not spawn in spaces that are protected by any other player than the Server Admin.
 * Commands
     * Players can return to their spawn point with the `/spawn` command if they have `spawn` privilege.
-    * Players can invite other players to join their spawn - see "Spawn invites" below
+        * Players can invite other players to join their spawn - see "Spawn invites" below
 	* Players can request a new spawn point by typing `/newspawn` if they have the `newspawn` privilege.
 	* Players can set their spawn point by typing `/setspawn` if they have the `setspawn` privelege.
-    * Players can assign a new random spawn for another player using `/playerspawn` if they have the `spawnadmin` privilege.
+    * Moderator players can assign a new random spawn for another player using `/playerspawn` if they have the `spawnadmin` privilege.
 
 KNOWN ISSUE - Any player not yet registered with a spawn point will be given a spawn point anywhere in the world. If applying retroactively to a server, this will cause existing players to be re-spawned once.
 
@@ -56,6 +56,26 @@ Note that the spawn generation is performed in the background on a timer, allowi
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
 * `rspawn.spawn_block` - place this custom block under the user's spawn point
 * `rspawn.debug` - whether to print debugging messages, default `false`
+
+## Troubleshooting
+
+You can turn on `rspawn.debug = true` to see debug in logs.
+
+If the generation log shows `0 air nodes found within <x>` on more than 2-3 consecutive tries, you may want to check the max number of forceloaded blocks configured - see `max_forceloaded_blocks`.
+
+This should be at least `2*(rspawn.search_radius^3) / (16^3)`, so with the default `rspawn.search_radius = 32`, you should have at least `max_forceloaded_blocks = 8`
+
+Also check that another mod is not forceloading blocks and not clearing them.
+
+You may also find some mods (rarely) do permanent forceloads. In your world folder `~/.minetest/worlds/<yourworld>` there should eb a `force_loaded.txt` - see that its contents are simply `return {}`; if there is data in the table, then something else is forceloading blocks.
+
+Resolutions in order of best to worst:
+
+* identify the mod and have it clear them properly (ideal)
+* increase the max number of forceloaded blocks
+    * (not great - you will effectively be simply mitigating a forceloaded-blocks-related memory leak)
+* Stop minetest, delete the `force_loaded.txt` file, and start it again
+    * (bad - some things in the mods using the forceload mechanism may break)
 
 ## License
 
