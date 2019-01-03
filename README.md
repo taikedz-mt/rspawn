@@ -29,7 +29,7 @@ When the guest accepts:
 * The guest's spawn will be set to the host's spawn position
 * The guest will be transported to their new spawn immediately
 
-This effect is permanent ; the guest cannot "undo" to retrieve their old spawn. The guest should cleanup their old spawn before leaving it. Server admins may wish to allow extended transportable inventory, like bags or ender chests, to facilitate such transitions.
+The guest can return to their original spawn by running `/spawn original` ; they will themselves be charged the same levvy.
 
 ## Settings
 

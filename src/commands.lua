@@ -8,7 +8,7 @@ minetest.register_privilege("setspawn", "Can manually set a spawn point")
 minetest.register_privilege("newspawn", "Can get a new randomized spawn position.")
 minetest.register_privilege("spawnadmin", "Can clean up timers and set new spawns for players.")
 
--- Splitter
+-- Support functions
 
 local function splitstring(sdata, sep)
     local idx
@@ -30,11 +30,38 @@ local function splitstring(sdata, sep)
     return tdata
 end
 
+local function set_original_spawn(tname)
+    local tpos = rspawn.playerspawns["original spawns"][tname]
+
+    if not tpos then
+        minetest.chat_send_player(tname, "Could not find your original spawn!")
+
+    elseif rspawn:consume_levvy(minetest.get_player_by_name(tname)) then
+        rspawn:set_player_spawn(tname, tpos)
+    else
+        minetest.chat_send_player(tname, "You do not have enough to pay the levvy. Aborting.")
+    end
+end
+
+local function request_new_spawn(username, targetname)
+    local timername = username
+    if targetname ~= username then
+        timername = username.." "..targetname
+    end
+
+    if not newspawn_cooldown[timername] then
+        rspawn:renew_player_spawn(targetname)
+        newspawn_cooldown[timername] = 300
+    else
+        minetest.chat_send_player(username, tostring(math.ceil(newspawn_cooldown[timername])).."sec until you can randomize a new spawn for "..targetname)
+    end
+end
+
 -- Commands
 
 minetest.register_chatcommand("spawn", {
-	description = "Teleport to spawn position, or manage invitations. See you current invitation with '/spawn invite'",
-	params = "[ invite [<player>] | accept | decline ]",
+	description = "Teleport to spawn position, or manage invitations. See you current invitation with '/spawn invite'. If you are a guest at a spawn, return to your orgiinal spawn with '/spawn original'",
+	params = "[ invite [<player>] | accept | decline | original ]",
 	privs = "spawn",
 	func = function(name, args)
 		local target = rspawn.playerspawns[name]
@@ -52,20 +79,22 @@ minetest.register_chatcommand("spawn", {
 
         elseif args[1] == "accept" then
             rspawn.invites:accept(name)
-                -- TODO, only one at a time, must be accepted or declined, and DO move player - not to be used lightly
             return
 
         elseif args[1] == "decline" then
-            rspawn.invites:decline(name) -- TODO, free up invitation slot
+            rspawn.invites:decline(name)
             return
+
+        elseif args[1] == "original" then
+            set_original_spawn(name)
 
         elseif args[1] == "invite" then
             if #args == 2 then
-                rspawn.invites:invite_player_fromto(name, args[2]) -- TODO
+                rspawn.invites:invite_player_fromto(name, args[2])
                 return
 
             elseif #args == 1 then
-                rspawn.invites:show_invite_for(name) -- TODO
+                rspawn.invites:show_invite_for(name)
                 return
             end
 
@@ -85,20 +114,6 @@ minetest.register_chatcommand("setspawn", {
 		minetest.chat_send_player(name, "New spawn set !")
 	end
 })
-
-local function request_new_spawn(username, targetname)
-    local timername = username
-    if targetname ~= username then
-        timername = username.." "..targetname
-    end
-
-    if not newspawn_cooldown[timername] then
-        rspawn:renew_player_spawn(targetname)
-        newspawn_cooldown[timername] = 300
-    else
-        minetest.chat_send_player(username, tostring(math.ceil(newspawn_cooldown[timername])).."sec until you can randomize a new spawn for "..targetname)
-    end
-end
 
 minetest.register_chatcommand("newspawn", {
 	description = "Randomly select a new spawn position.",

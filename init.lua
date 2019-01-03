@@ -67,7 +67,8 @@ end
 
 function rspawn:newspawn(pos, radius)
     -- Given a seed position and a radius, find an exact spawn location
-    --   that is walkable and with 2 air nodes above it
+    --   that is an air node, walkable under it, non-walkable over it
+    --   bright during the day, and not leaves
 
     rspawn:debug("Trying somewhere around "..minetest.pos_to_string(pos))
 
@@ -135,8 +136,6 @@ function rspawn:set_player_spawn(name, newpos)
 end
 
 local function register_original_spawn(playername, pos)
-    -- We say players cannot find their original spawn after invite
-    -- That is the intended behaviour ; however we should still record this. Just in case.
     if not rspawn.playerspawns["original spawns"] then
         rspawn.playerspawns["original spawns"] = {}
     end

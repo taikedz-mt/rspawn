@@ -60,7 +60,7 @@ function rspawn.invites:invite_player_fromto(hostname, guestname)
 
     local hostspawn_s = minetest.pos_to_string(rspawn.playerspawns[hostname])
 
-    minetest.chat_send_player(guestname, hostname.." invited you to join their spawn point.\nIf you accept, your spawn point will be set to "..hostspawn_s.." and you will be taken there immediately.\n    WARNING: This CANNOT BE UNDONE.\n\nRun '/spawn accept' to accept, '/spawn decline' to decline and clear the invite.")
+    minetest.chat_send_player(guestname, hostname.." invited you to join their spawn point.\nIf you accept, your spawn point will be set to "..hostspawn_s.." and you will be taken there IMMEDIATELY.\nRun '/spawn accept' to accept, '/spawn decline' to decline and clear the invite.")
 
     minetest.chat_send_player(hostname,
         "You have invited "..guestname.." to join your spawn.\nIf they accept, you will be charged \n\n    "..levvy_qtty.." "..levvy_nicename.." \n\nwhich will be taken from your inventory."
@@ -106,7 +106,7 @@ local function find_levvy(player)
     return false
 end
 
-local function consume_levvy(player)
+function rspawn:consume_levvy(player)
     if not player then
         minetest.log("action", "Tried to access undefined player")
         return false
@@ -160,9 +160,14 @@ function rspawn.invites:accept(guestname)
         return
     end
 
-    if consume_levvy(minetest.get_player_by_name(hostname) ) then -- Systematically notifies host if they don't have enough
+    if rspawn:consume_levvy(minetest.get_player_by_name(hostname) ) then -- Systematically notifies host if they don't have enough
         local hostspawn = rspawn.playerspawns[hostname]
         rspawn:set_player_spawn(guestname, hostspawn) -- sets new spawn position, saves, teleports player
+        local success_message = " has accepted the spawn invitation from "
+        minetest.chat_send_player(guestname, guestname..success_message..hostname)
+        minetest.chat_send_player(hostname, guestname..success_message..hostname)
+
+        minetest.chat_send_player(guestname, "You can return to your original spawn using '/spawn original' for \n\n    "..levvy_qtty.." "..levvy_nicename.." \n\nwhich will be taken from your inventory.")
 
     else -- Host was notified, now notify guest
         minetest.chat_send_player(guestname, hostname.." was unable to pay the levvy. Invitation could not be accepted.")
