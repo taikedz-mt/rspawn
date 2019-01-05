@@ -30,7 +30,7 @@ function rspawn:spawnsave()
 	file:write(serdata)
 	file:close()
 
-    pregens = rspawn.playerspawns["pre gen"] or {}
+    local pregens = rspawn.playerspawns["pre gen"] or {}
     minetest.debug("Wrote rspawn data with "..tostring(#pregens).." pregen nodes")
 end
 
@@ -44,7 +44,7 @@ function rspawn:spawnload()
         rspawn.playerspawns = {}
     end
 
-    pregens = rspawn.playerspawns["pre gen"] or {}
+    local pregens = rspawn.playerspawns["pre gen"] or {}
     rspawn.playerspawns["pre gen"] = pregens
 
     reconcile_original_spawns()
