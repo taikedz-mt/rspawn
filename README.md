@@ -7,7 +7,7 @@ Causes players to receive a spawn point anywhere on the map. Players will likely
 * Player is assigned randomized spawnpoint on joining
 * Player will respawn at their spawnpoint if they die.
     * If `beds` spawning is active, then beds can be used to reset the players' spawn point.
-* Players will not spawn in spaces that are protected by any other player than the Server Admin.
+* Players will not spawn in spaces that are protected
 * Commands
     * Players can return to their spawn point with the `/spawn` command if they have `spawn` privilege.
         * Players can invite other players to join their spawn - see "Spawn invites" below
@@ -52,7 +52,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
     * default `true`
     * if `false`, will randomize around the static spawn point
 * `rspawn.levvy_name` - name of the block to use as levvy charge on the player issuing an invitation, default `default:cobble`
-* `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `99`
+* `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `10`
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
 * `rspawn.spawn_block` - place this custom block under the user's spawn point
 * `rspawn.debug` - whether to print debugging messages, default `false`

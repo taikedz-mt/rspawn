@@ -21,9 +21,6 @@ local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0,
 -- Setting from beds mod
 rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true) -- from beds mod
 
--- Detect server mode, of sorts
-rspawn.adminname = minetest.settings:get("name", "singleplayer")
-
 -- rSpawn specific settings
 rspawn.debug_on = minetest.settings:get_bool("rspawn.debug")
 rspawn.spawnanywhere = notnil_or(true, minetest.settings:get_bool("rspawn.spawn_anywhere") )
@@ -88,7 +85,7 @@ function rspawn:newspawn(pos, radius)
 
         if under.walkable
          and not over.walkable
-         and not minetest.is_protected(anode, rspawn.adminname)
+         and not minetest.is_protected(anode, "")
          and not (under.groups and under.groups.leaves ) -- no spawning on treetops!
          and daylight_above(7, anode) then
             validnodes[#validnodes+1] = anode
