@@ -6,7 +6,7 @@ rspawn.invitations = {}
 local invite_charge = {}
 
 levvy_name = minetest.settings:get("rspawn.levvy_name") or "default:cobble"
-levvy_qtty = tonumber(minetest.settings:get("rspawn.levvy_qtty")) or 99
+levvy_qtty = tonumber(minetest.settings:get("rspawn.levvy_qtty")) or 10
 levvy_nicename = "cobblestone"
 
 minetest.after(0,function()
