@@ -51,6 +51,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
 * `rspawn.spawn_anywhere` - whether to spawn anywhere in the world at sea level
     * default `true`
     * if `false`, will randomize around the static spawn point
+* `rspawn.cooldown_time` - how many seconds between two uses of `/newspawn`, per player
 * `rspawn.levvy_name` - name of the block to use as levvy charge on the player issuing an invitation, default `default:cobble`
 * `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `10`
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
@@ -76,6 +77,25 @@ Resolutions in order of best to worst:
     * (not great - you will effectively be simply mitigating a forceloaded-blocks-related memory leak)
 * Stop minetest, delete the `force_loaded.txt` file, and start it again
     * (bad - some things in the mods using the forceload mechanism may break)
+
+## Singple Player Mode
+
+This mod is mainly intended for use on servers with multiple players.
+
+It is also suitable for single player sessions too - if you want a new location to start a creative build, but don't want to go through creating another, separate world for it, just grab yourself a new spawnpoint!
+
+You may want to tune the mod to suit your computer's capabilities ; to this end, the following may be helpful:
+
+* Add `rspawn` to your world
+    * Go to the *Advanced Settings* area of Minetest, look for `mods > rspawn`
+    * Change the frequency of pregeneration as required
+        * Good CPUs, enough RAM and SSD hard drives might get away with a frequency of 20sec (!)
+        * If you find your game immediately lagging due to excessive map generation, switch the frequency to say 120
+    * Change the Cooldown time - default is `300` seconds (5 minutes) between uses of `/newspawn`
+    * Optionally, change the maximum pregen to the desired number of spawnpoints to pregenerate and hold
+* Start the game session; Wait around 1 minute or so as the initial spawn point gets generated and is assigned to you
+* Jump around! (with `/newspawn`)
+    * Until you exhaust your pregens :-P
 
 ## License
 

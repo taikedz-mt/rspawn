@@ -1,5 +1,6 @@
 local stepcount = 0
 local newspawn_cooldown = {}
+local cooldown_time = tonumber(minetest.settings:get("rspawn.cooldown_time")) or 300
 
 -- Command privileges
 
@@ -51,7 +52,7 @@ local function request_new_spawn(username, targetname)
 
     if not newspawn_cooldown[timername] then
         rspawn:renew_player_spawn(targetname)
-        newspawn_cooldown[timername] = 300
+        newspawn_cooldown[timername] = cooldown_time
     else
         minetest.chat_send_player(username, tostring(math.ceil(newspawn_cooldown[timername])).."sec until you can randomize a new spawn for "..targetname)
     end
@@ -87,6 +88,7 @@ minetest.register_chatcommand("spawn", {
 
         elseif args[1] == "original" then
             set_original_spawn(name)
+            return
 
         elseif args[1] == "invite" then
             if #args == 2 then
