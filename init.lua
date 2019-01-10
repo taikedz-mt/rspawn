@@ -29,6 +29,11 @@ rspawn.max_pregen_spawns = tonumber(minetest.settings:get("rspawn.max_pregen") o
 rspawn.search_radius = tonumber(minetest.settings:get("rspawn.search_radius") or 32)
 rspawn.gen_frequency = tonumber(minetest.settings:get("rspawn.gen_frequency") or 30)
 rspawn.spawn_block = minetest.settings:get("rspawn.spawn_block")
+
+rspawn.min_x = tonumber(minetest.settings:get("rspawn.min_x") or -31000)
+rspawn.max_x = tonumber(minetest.settings:get("rspawn.max_x") or 31000)
+rspawn.min_z = tonumber(minetest.settings:get("rspawn.min_z") or -31000)
+rspawn.max_z = tonumber(minetest.settings:get("rspawn.max_z") or 31000)
     
 dofile(mpath.."/src/data.lua")
 dofile(mpath.."/src/invites.lua")
@@ -108,9 +113,9 @@ function rspawn:genpos()
 
     if rspawn.spawnanywhere then
         pos = {
-            x = math.random(-30000,30000),
+            x = math.random(min_x,max_x),
             y = water_level, -- always start at waterlevel
-            z = math.random(-30000,30000),
+            z = math.random(min_z,max_z),
         }
     end
 

@@ -8,3 +8,7 @@ rspawn.spawn_block (Node to place under new spawn point) string
 rspawn.levvy_name (Levvy itemstring) string "default:cobble"
 rspawn.levvy_qtty (Levvy quantity) string 10
 rspawn.cooldown_time (Cooldown between /newspawn uses) string 300
+rspawn.min_x (Westmost bounds) string -31000
+rspawn.max_x (Eastmost bounds) string 31000
+rspawn.min_z (Southmost bounds) string -31000
+rspawn.max_z (Northmost bounds) string 31000

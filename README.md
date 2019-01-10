@@ -57,6 +57,8 @@ Note that the spawn generation is performed in the background on a timer, allowi
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
 * `rspawn.spawn_block` - place this custom block under the user's spawn point
 * `rspawn.debug` - whether to print debugging messages, default `false`
+* Bounds limiting - you can limit the random spawning to a given area if you wish:
+    * `rspawn.min_x`, `rspawn.max_x`, `rspawn.min_z`, `rspawn.max_z` as expected
 
 ## Troubleshooting
 
