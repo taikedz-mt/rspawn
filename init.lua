@@ -123,6 +123,11 @@ function rspawn:genpos()
 end
 
 function rspawn:set_player_spawn(name, newpos)
+    local tplayer = minetest.get_player_by_name(name)
+    if not tplayer then
+        return false
+    end
+
     local spos = minetest.pos_to_string(newpos)
 
     rspawn.debug("Saving spawn for "..name, spos)
@@ -131,10 +136,12 @@ function rspawn:set_player_spawn(name, newpos)
 
     minetest.chat_send_player(name, "New spawn set at "..spos)
 
-    minetest.get_player_by_name(name):setpos(rspawn.playerspawns[name])
+    tplayer:setpos(rspawn.playerspawns[name])
     minetest.after(0.5,function()
         set_default_node({x=newpos.x,y=newpos.y-1,z=newpos.z})
     end)
+
+    return true
 end
 
 local function register_original_spawn(playername, pos)
@@ -174,14 +181,18 @@ end
 
 function rspawn:renew_player_spawn(playername)
     local player = minetest.get_player_by_name(playername)
+    if not player then
+        return false
+    end
 
     local newpos = rspawn:get_next_spawn()
 
     if newpos then
-        rspawn:set_player_spawn(playername, newpos)
+        return rspawn:set_player_spawn(playername, newpos)
 
     else
         minetest.chat_send_player(playername, "Could not get custom spawn!")
+        return false
     end
 end
 

@@ -51,10 +51,16 @@ local function request_new_spawn(username, targetname)
     end
 
     if not newspawn_cooldown[timername] then
-        rspawn:renew_player_spawn(targetname)
-        newspawn_cooldown[timername] = cooldown_time
+        if not rspawn:renew_player_spawn(targetname) then
+            minetest.chat_send_player(username, "Could not set new spawn for "..targetname)
+            return false
+        else
+            newspawn_cooldown[timername] = cooldown_time
+            return true
+        end
     else
         minetest.chat_send_player(username, tostring(math.ceil(newspawn_cooldown[timername])).."sec until you can randomize a new spawn for "..targetname)
+        return false
     end
 end
 
@@ -128,7 +134,7 @@ minetest.register_chatcommand("newspawn", {
 
 minetest.register_chatcommand("playerspawn", {
 	description = "Randomly select a new spawn position for a player, or use specified position, 'original' for their original spawn.",
-	params = "<playername> [<pos> | original]",
+	params = "<playername> { new | <pos> | original | go }",
 	privs = "spawnadmin",
 	func = function(name, args)
         if args ~= "" then
@@ -145,17 +151,29 @@ minetest.register_chatcommand("playerspawn", {
                         minetest.chat_send_player(tname, "Could not find original spawn for "..tname)
                         return
                     end
+                elseif args[2] == "go" then
+                    local user = minetest.get_player_by_name(name)
+                    local dest = rspawn.playerspawns[args[1]]
+                    if dest then
+                        user:setpos(dest)
+                        minetest.chat_send_player(name, "Moved to spawn point of "..args[1])
+                    else
+                        minetest.chat_send_player(name, "No rspawn coords for "..args[1])
+                    end
+                    return
+                elseif args[2] == "new" then
+                    request_new_spawn(name, args[1])
+                    return
                 else
                     tpos = minetest.string_to_pos(args[2])
                 end
 
                 if tpos then
-                    rspawn:set_player_spawn(tname, tpos)
+                    if not rspawn:set_player_spawn(tname, tpos) then
+                        minetest.chat_send_player(name, name.."'s spawn could not be reset")
+                    end
                     return
                 end
-            elseif #args == 1 then
-                request_new_spawn(name, args[1])
-                return
             end
         end
 
