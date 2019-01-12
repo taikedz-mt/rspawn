@@ -113,9 +113,9 @@ function rspawn:genpos()
 
     if rspawn.spawnanywhere then
         pos = {
-            x = math.random(min_x,max_x),
+            x = math.random(rspawn.min_x,rspawn.max_x),
             y = water_level, -- always start at waterlevel
-            z = math.random(min_z,max_z),
+            z = math.random(rspawn.min_z,rspawn.max_z),
         }
     end
 
