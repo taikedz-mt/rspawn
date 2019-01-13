@@ -17,7 +17,7 @@ local radial_step = 16
 
 -- Setting with no namespace for interoperability
 local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=0, z=0}
-local rspawn.admin = minetest.setting_get_pos("name") or "" -- For messagin only
+rspawn.admin = minetest.settings:get("name") or "" -- For messaging only
 
 -- Setting from beds mod
 rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true) -- from beds mod
