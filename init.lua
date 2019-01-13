@@ -17,6 +17,7 @@ local radial_step = 16
 
 -- Setting with no namespace for interoperability
 local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0, y=0, z=0}
+local rspawn.admin = minetest.setting_get_pos("name") or "" -- For messagin only
 
 -- Setting from beds mod
 rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true) -- from beds mod
@@ -153,7 +154,11 @@ end
 
 function rspawn:set_newplayer_spawn(player)
     -- only use for new players / players who have never had a randomized spawn
+    if not player then return end
+
     local playername = player:get_player_name()
+
+    if playername == "" then return end
 
     if not rspawn.playerspawns[playername] then
         local newpos = rspawn:get_next_spawn()
@@ -170,6 +175,8 @@ function rspawn:set_newplayer_spawn(player)
 
             else
                 minetest.chat_send_player(playername, "Could not get custom spawn! Retrying in "..rspawn.gen_frequency.." seconds")
+                minetest.chat_send_player(rspawn.admin, "Exhausted spawns! Could not spawn "..playername)
+                minetest.log("warning", "rspawn -- Exhausted spawns! Could not spawn "..playername)
 
                 minetest.after(rspawn.gen_frequency, function()
                     rspawn:set_newplayer_spawn(player)
@@ -210,8 +217,16 @@ minetest.register_on_respawnplayer(function(player)
         end
     end
 
+    minetest.debug("Respawning "..name)
+    local pos = rspawn.playerspawns[name]
+
     -- And if no bed, nor bed spwawning not active:
-    player:setpos(rspawn.playerspawns[name])
+    if pos then
+        player:setpos(pos)
+    else
+        minetest.chat_send_player(name, "Failed to find your spawn point!")
+        minetest.log("warning", "rspawn --Could not find spawn point for "..name)
+    end
     return true
 end)
 

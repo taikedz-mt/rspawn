@@ -29,7 +29,9 @@ end
 
 function rspawn:forceload_free_blocks_in(pos1, pos2)
     rspawn:debug("Freeing forceloaded blocks ____/", {pos1=minetest.pos_to_string(pos1),pos2=minetest.pos_to_string(pos2)})
-    forceload_operate(pos1, pos2, minetest.forceload_free_block, true)
+    -- free both cases - take no chances
+    forceload_operate(pos1, pos2, minetest.forceload_free_block) -- free if persistent
+    forceload_operate(pos1, pos2, minetest.forceload_free_block, true) -- free if transient
     forceloading_happening = false
 end
 

@@ -36,6 +36,7 @@ local function push_new_spawn()
                 set_pgen(len_pgen()+1, newpos )
             else
                 rspawn:debug("Failed to generate new spawn point to push")
+                minetest.chat_send_player(rspawn.admin, "Failed to generate new spawn")
             end
 
             rspawn:forceload_free_blocks_in(pos1, pos2)
