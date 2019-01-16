@@ -20,7 +20,7 @@ local static_spawnpoint = minetest.setting_get_pos("static_spawnpoint") or {x=0,
 rspawn.admin = minetest.settings:get("name") or "" -- For messaging only
 
 -- Setting from beds mod
-rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn", true) -- from beds mod
+rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn") ~= false -- from beds mod
 
 -- rSpawn specific settings
 rspawn.debug_on = minetest.settings:get_bool("rspawn.debug")
@@ -208,26 +208,29 @@ minetest.register_on_joinplayer(function(player)
 end)
 
 minetest.register_on_respawnplayer(function(player)
+    -- return true to disable further respawn placement
     local name = player:get_player_name()
-    if rspawn.bedspawn == true then
+    if rspawn.bedspawn == true and beds.spawn then
         local pos = beds.spawn[name]
         if pos then
+            minetest.log("action", name.." respawns at "..minetest.pos_to_string(pos))
             player:setpos(pos)
             return true
         end
     end
 
-    minetest.debug("Respawning "..name)
     local pos = rspawn.playerspawns[name]
 
     -- And if no bed, nor bed spwawning not active:
     if pos then
+        minetest.log("action", name.." respawns at "..minetest.pos_to_string(pos))
         player:setpos(pos)
+        return true
     else
         minetest.chat_send_player(name, "Failed to find your spawn point!")
-        minetest.log("warning", "rspawn --Could not find spawn point for "..name)
+        minetest.log("warning", "rspawn -- Could not find spawn point for "..name)
+        return false
     end
-    return true
 end)
 
 dofile(mpath.."/src/pregeneration.lua")
