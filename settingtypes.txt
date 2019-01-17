@@ -3,7 +3,7 @@ rspawn.spawn_anywhere (Spawn anywhere) bool true
 rspawn.kick_on_fail (Kick on fail) bool false
 rspawn.max_pregen (Maximum blocks to pregenerate) string 10
 rspawn.search_radius (Search radius) string 32
-rspawn.gen_frequency (Spawnpoint generation frequency [seconds]) 60
+rspawn.gen_frequency (Spawnpoint generation frequency [seconds]) string 60
 rspawn.spawn_block (Node to place under new spawn point) string 
 rspawn.levvy_name (Levvy itemstring) string "default:cobble"
 rspawn.levvy_qtty (Levvy quantity) string 10
