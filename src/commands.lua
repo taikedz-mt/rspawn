@@ -134,7 +134,7 @@ minetest.register_chatcommand("newspawn", {
 
 minetest.register_chatcommand("playerspawn", {
 	description = "Randomly select a new spawn position for a player, or use specified position, 'original' for their original spawn.",
-	params = "<playername> { new | <pos> | original | go }",
+	params = "<playername> { new | <pos> | original | setoriginal | go }",
 	privs = "spawnadmin",
 	func = function(name, args)
         if args ~= "" then
@@ -151,6 +151,13 @@ minetest.register_chatcommand("playerspawn", {
                         minetest.chat_send_player(tname, "Could not find original spawn for "..tname)
                         return
                     end
+                elseif args[2] == "setoriginal" then
+                    rspawn.playerspawns["original spawns"][tname] = rspawn.playerspawns[tname]
+                    minetest.chat_send_player(name, "Saved "..tname..
+                        "'s spawn "..minetest.pos_to_string(rspawn.playerspawns[tname])..
+                        " as original.")
+                    return
+
                 elseif args[2] == "go" then
                     local user = minetest.get_player_by_name(name)
                     local dest = rspawn.playerspawns[args[1]]
