@@ -27,23 +27,26 @@ end
 
 local function reconcile_guest(guestname, guestspawn)
     for hostname,hostspawn in pairs(rspawn.playerspawns) do
-        if hostspawn == guestspawn then
+        if hostname ~= "guest lists" and hostname ~= guestname and hostspawn == guestspawn then
             local hostlist = rspawn.playerspawns["guest lists"][hostname] or {}
             hostlist[guestname] = 1
             rspawn.playerspawns["guest lists"][hostname] = hostlist
-
-            rspawn.playerspawns["original spawns"][guestname] = nil
         end
     end
 end
 
 local function reconcile_guestlist_spawns()
-    local original_spawns = rspawn.playerspawns["original spawns"]
-    if not original_spawns then return
+    if not rspawn.playerspawns["guest lists"] then rspawn.playerspawns["guest lists"] = {} end
 
-    for guestname,spawnpos in pairs(original_spawns) do
+    for guestname,spawnpos in pairs(rspawn.playerspawns) do
         reconcile_guest(guestname, spawnpos)
-        rspawn.playerspawns[guestname] = spawnpos
+
+        if rspawn.playerspawns["original spawns"][guestname] then
+            rspawn.playerspawns[guestname] = rspawn.playerspawns["original spawns"][guestname]
+            rspawn.playerspawns["original spawns"][guestname] = nil
+        else
+            minetest.debug("Could not return "..guestname)
+        end
     end
 
     if #rspawn.playerspawns["original spawns"] == 0 then

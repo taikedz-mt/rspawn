@@ -20,6 +20,8 @@ minetest.after(0,function()
 end)
 
 local function canvisit(hostname, guestname)
+    minetest.debug(dump(rspawn.playerspawns["guest lists"]))
+
     local glist = rspawn.playerspawns["guest lists"][hostname] or {}
     return glist[guestname] == 1
 end
@@ -139,7 +141,7 @@ function rspawn.invites:kick(hostname, guestname)
     local hostspawnpos = rspawn.playerspawns[hostname]
     local guestspawnpos = rspawn.playerspawns[guestname]
 
-    if vector.distance(guestpos, hostspawnpos) then
+    if vector.distance(guestpos, hostspawnpos) < 32 then
         guest:setpos(guestspawnpos)
     end
 end
@@ -149,7 +151,7 @@ function rspawn.invites:listguests(hostname)
     local guestlist = rspawn.playerspawns["guest lists"][hostname] or {}
 
     for guestname,status in pairs(guestlist) do
-        if status == 1 then status = "" else status = " (exiled)"
+        if status == 1 then status = "" else status = " (exiled)" end
 
         guests = ", "..guestname..status
     end
@@ -163,7 +165,7 @@ function rspawn.invites:listhosts(guestname)
     for _,hostname in ipairs(rspawn.playerspawns["guest lists"]) do
         for gname,status in pairs(rspawn.playerspawns["guest lists"][hostname]) do
             if guestname == gname then
-                if status == 1 then status = "" else status = " (exiled)"
+                if status == 1 then status = "" else status = " (exiled)" end
 
                 hosts = ", "..hostname..status
             end
@@ -177,10 +179,14 @@ function rspawn.invites:visitplayer(hostname, guestname)
     local guest = minetest.get_player_by_name(guestname)
     local hostpos = rspawn.playerspawns[hostname]
 
-    if guest and hostpos and canvisit(hostname, guestname) then
-        guest:setpos(hostpos)
-    else
+    if not hostpos then
         minetest.log("error", "[rspawn] Missing spawn position data for "..hostname)
         minetest.chat_send_player(guestname, "Could not find spawn position for "..hostname)
+    end
+
+    if guest and canvisit(hostname, guestname) then
+        guest:setpos(hostpos)
+    else
+        minetest.chat_send_player(guestname, "Could not visit"..hostname)
     end
 end

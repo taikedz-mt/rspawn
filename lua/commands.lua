@@ -38,16 +38,16 @@ minetest.register_chatcommand("spawn", {
 	params = "[ add <player> | visit <player> | kick <player> | guests | hosts ]",
 	privs = "spawn",
 	func = function(playername, args)
-		local target = rspawn.playerspawns[name]
+		local target = rspawn.playerspawns[playername]
         local args = args:split(" ")
 
         if #args == 0 then
             if target then
-                minetest.get_player_by_name(name):setpos(target)
+                minetest.get_player_by_name(playername):setpos(target)
                 return
 
             else
-                minetest.chat_send_player(name, "You have no spawn position!")
+                minetest.chat_send_player(playername, "You have no spawn position!")
                 return
             end
         elseif #args < 3 then
@@ -70,7 +70,7 @@ minetest.register_chatcommand("spawn", {
             end
         end
         
-        minetest.chat_send_player(name, "Please check '/help spawn'")
+        minetest.chat_send_player(playername, "Please check '/help spawn'")
 	end
 })
 
