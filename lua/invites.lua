@@ -144,6 +144,87 @@ function rspawn:consume_levvy(player)
     return false
 end
 
+function rspawn.invites:addplayer(hostname, guestname)
+    local guestlist = rspawn.guestlists[hostname] or {}
+
+    if guestlist[guestname] ~= nil then
+        minetest.chat_send_player(hostname, guestname.." is already in your guest list.")
+
+    elseif rspawn:consume_levvy(minetest.get_player_by_name(hostname) ) then -- Automatically notifies host if they don't have enough
+        guestlist[guestname] = 1
+        rspawn.questlists[hostname] = guestlist
+
+        minetest.chat_send_player(guestname, hostname.." added you to their spawn! You can now visit them with /spawn visit "..hostname)
+    end
+end
+
+function rspawn.invites:exileplayer(hostname, guestname)
+    local guestlist = rspawn.guestlists[hostname] or {}
+
+    if guestlist[guestname] == 1 then
+        guestlist[guestname] = 0
+        rspawn.questlists[hostname] = guestlist
+
+        minetest.chat_send_player(guestname, hostname.." has exiled you!")
+    else
+        minetest.chat_send_player(hostname, guestname.." is not in your accepted guests list.")
+    end
+end
+
+function rspawn.invites:liftexileplayer(hostname, guestname)
+    local guestlist = rspawn.guestlists[hostname] or {}
+
+    if guestlist[guestname] == 0 then
+        guestlist[guestname] = 1
+        rspawn.questlists[hostname] = guestlist
+
+        rspawn.invites:kick(hostname, guestname)
+
+        minetest.chat_send_player(guestname, hostname.." has exiled you!")
+    else
+        minetest.chat_send_player(hostname, guestname.." is not in your exiled guests list.")
+    end
+end
+
+function rspawn.invites:kick(hostname, guestname)
+    local guest = minetest.get_player_by_name(guestname)
+    local guestpos = guest:getpos()
+    local hostspawnpos = rspawn.playerspawns[hostname]
+    local guestspawnpos = rspawn.playerspawns[guestname]
+
+    if vector.distance(guestpos, hostspawnpos) then
+        guest:setpos(guestspawnpos)
+    end
+end
+
+function rspawn.invites:listguests(hostname)
+    local guests = ""
+    local guestlist = rspawn.guestlists[hostname] or {}
+
+    for guestname,status in pairs(guestlist) do
+        if status == 1 then status = "" else status = " (exiled)"
+
+        guests = ", "..guestname..status
+    end
+
+    minetest.chat_send_player(hostname, guests)
+end
+
+function rspawn.invites:listhosts(guestname)
+    local hosts = ""
+
+    for _,hostname in ipairs(rspawn.guestlists) do
+        for gname,status in pairs(rspawn.guestlists[hostname]) do
+            if guestname == gname then
+                if status == 1 then status = "" else status = " (exiled)"
+
+                hosts = ", "..hostname..status
+            end
+        end
+    end
+
+    minetest.chat_send_player(guestname, hosts)
+end
 
 function rspawn.invites:accept(guestname)
     local hostname = rspawn.invitations[guestname]
