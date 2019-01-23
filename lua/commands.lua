@@ -4,45 +4,12 @@ local cooldown_time = tonumber(minetest.settings:get("rspawn.cooldown_time")) or
 
 -- Command privileges
 
-minetest.register_privilege("spawn", "Can teleport to spawn position.")
-minetest.register_privilege("setspawn", "Can manually set a spawn point")
+minetest.register_privilege("spawn", "Can teleport to a spawn position and manage shared spawns.")
+minetest.register_privilege("setspawn", "Can manually set a spawn point.")
 minetest.register_privilege("newspawn", "Can get a new randomized spawn position.")
 minetest.register_privilege("spawnadmin", "Can clean up timers and set new spawns for players.")
 
 -- Support functions
-
-local function splitstring(sdata, sep)
-    local idx
-    local tdata = {}
-
-    while sdata ~= "" do
-        idx = sdata:find(sep)
-        
-        if idx then
-            tdata[#tdata+1] = sdata:sub(1,idx-1)
-            sdata = sdata:sub(idx+1, sdata:len() )
-
-        else -- last element
-            tdata[#tdata+1] = sdata
-            break
-        end
-    end
-
-    return tdata
-end
-
-local function set_original_spawn(tname)
-    local tpos = rspawn.playerspawns["original spawns"][tname]
-
-    if not tpos then
-        minetest.chat_send_player(tname, "Could not find your original spawn!")
-
-    elseif rspawn:consume_levvy(minetest.get_player_by_name(tname)) then
-        rspawn:set_player_spawn(tname, tpos)
-    else
-        minetest.chat_send_player(tname, "You do not have enough to pay the levvy. Aborting.")
-    end
-end
 
 local function request_new_spawn(username, targetname)
     local timername = username
@@ -67,12 +34,12 @@ end
 -- Commands
 
 minetest.register_chatcommand("spawn", {
-	description = "Teleport to spawn position, or manage invitations. See you current invitation with '/spawn invite'. If you are a guest at a spawn, return to your orgiinal spawn with '/spawn original'",
-	params = "[ invite [<player>] | accept | decline | original ]",
+	description = "Teleport to your spawn, or manage guests in your spawn.",
+	params = "[ add <player> | visit <player> | kick <player> | guests | hosts ]",
 	privs = "spawn",
-	func = function(name, args)
+	func = function(playername, args)
 		local target = rspawn.playerspawns[name]
-        local args = splitstring(args, " ")
+        local args = args:split(" ")
 
         if #args == 0 then
             if target then
@@ -83,29 +50,24 @@ minetest.register_chatcommand("spawn", {
                 minetest.chat_send_player(name, "You have no spawn position!")
                 return
             end
+        elseif #args < 3 then
+            for command,action in pairs({
+                ["guests"] = function() rspawn.invites:listguests(playername) end,
+                ["hosts"] = function() rspawn.invites:listhosts(playername) end,
+                ["add"] = function(commandername,targetname) rspawn.invites:addplayer(commandername,targetname) end,
+                ["visit"] = function(commandername,targetname) rspawn.invites:visitplayer(targetname, commandername) end,
+                ["kick"] = function(commandername,targetname) rspawn.invites:exileplayer(commandername, targetname) end,
+                }) do
 
-        elseif args[1] == "accept" then
-            rspawn.invites:accept(name)
-            return
-
-        elseif args[1] == "decline" then
-            rspawn.invites:decline(name)
-            return
-
-        elseif args[1] == "original" then
-            set_original_spawn(name)
-            return
-
-        elseif args[1] == "invite" then
-            if #args == 2 then
-                rspawn.invites:invite_player_fromto(name, args[2])
-                return
-
-            elseif #args == 1 then
-                rspawn.invites:show_invite_for(name)
-                return
+                if args[1] == command then
+                    if #args == 2 then
+                        action(playername, args[2])
+                    else
+                        action()
+                    end
+                    return
+                end
             end
-
         end
         
         minetest.chat_send_player(name, "Please check '/help spawn'")
@@ -133,32 +95,18 @@ minetest.register_chatcommand("newspawn", {
 })
 
 minetest.register_chatcommand("playerspawn", {
-	description = "Randomly select a new spawn position for a player, or use specified position, 'original' for their original spawn.",
-	params = "<playername> { new | <pos> | original | setoriginal | go }",
+	description = "Randomly select a new spawn position for a player, or use specified position, or go to their spawn.",
+	params = "<playername> { new | <pos> | go }",
 	privs = "spawnadmin",
 	func = function(name, args)
         if args ~= "" then
-            args = splitstring(args, " ")
+            args = args:splitstring(" ")
 
             if #args == 2 then
                 local tname = args[1]
                 local tpos
 
-                if args[2] == "original" then
-                    tpos = rspawn.playerspawns["original spawns"][tname]
-                    if not tpos then
-                        minetest.chat_send_player( name, "Could not find original spawn for "..tname)
-                        minetest.chat_send_player(tname, "Could not find original spawn for "..tname)
-                        return
-                    end
-                elseif args[2] == "setoriginal" then
-                    rspawn.playerspawns["original spawns"][tname] = rspawn.playerspawns[tname]
-                    minetest.chat_send_player(name, "Saved "..tname..
-                        "'s spawn "..minetest.pos_to_string(rspawn.playerspawns[tname])..
-                        " as original.")
-                    return
-
-                elseif args[2] == "go" then
+                if args[2] == "go" then
                     local user = minetest.get_player_by_name(name)
                     local dest = rspawn.playerspawns[args[1]]
                     if dest then
@@ -168,18 +116,20 @@ minetest.register_chatcommand("playerspawn", {
                         minetest.chat_send_player(name, "No rspawn coords for "..args[1])
                     end
                     return
+
                 elseif args[2] == "new" then
                     request_new_spawn(name, args[1])
                     return
+
                 else
                     tpos = minetest.string_to_pos(args[2])
-                end
 
-                if tpos then
-                    if not rspawn:set_player_spawn(tname, tpos) then
-                        minetest.chat_send_player(name, name.."'s spawn could not be reset")
+                    if tpos then
+                        if not rspawn:set_player_spawn(tname, tpos) then
+                            minetest.chat_send_player(name, name.."'s spawn could not be reset")
+                        end
+                        return
                     end
-                    return
                 end
             end
         end
