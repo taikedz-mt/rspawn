@@ -100,7 +100,7 @@ minetest.register_chatcommand("playerspawn", {
 	privs = "spawnadmin",
 	func = function(name, args)
         if args ~= "" then
-            args = args:splitstring(" ")
+            args = args:split(" ")
 
             if #args == 2 then
                 local tname = args[1]
