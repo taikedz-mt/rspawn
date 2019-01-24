@@ -62,10 +62,12 @@ minetest.register_chatcommand("spawn", {
                 if args[1] == command then
                     if #args == 2 then
                         action(playername, args[2])
-                    else
+                        return
+
+                    elseif #args == 1 then
                         action()
+                        return
                     end
-                    return
                 end
             end
         end
