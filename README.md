@@ -17,19 +17,17 @@ Causes players to receive a spawn point anywhere on the map. Players will likely
 
 KNOWN ISSUE - Any player not yet registered with a spawn point will be given a spawn point anywhere in the world. If applying retroactively to a server, this will cause existing players to be re-spawned once.
 
-### Spawn invites
+### Spawn guests
 
-Randomized spawning typically causes players to spawn far from eachother. If players wish to share a single spawn point, a player can invite another to join their spawn position.
+Randomized spawning typically causes players to spawn far from eachother. If players wish to share a single spawn point, a player can add another to join their spawn position.
 
-The player issuing the invite (host) must typically pay a levvy when the other player (guest) accepts.
+The player issuing the invite (host) must typically pay a levvy when adding another player.
 
-When the guest accepts:
-
-* The host will pay the levvy from their inventory
-* The guest's spawn will be set to the host's spawn position
-* The guest will be transported to their new spawn immediately
-
-The guest can return to their original spawn by running `/spawn original` ; they will themselves be charged the same levvy.
+* `/spawn add <player>` - allow another player to visit your spawn directly, or lift their exile
+* `/spawn kick <player>` - revoke rights to visit you, and if they are in your space, returns them to their own spawn
+* `/spawn visit <player>` - visit a player's spawn
+* `/spawn guests` - see who you have added to your spawn
+* `/spawn hosts` - see who has added you to their spawn
 
 ## Settings
 

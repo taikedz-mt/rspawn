@@ -1,4 +1,4 @@
-rspawn.invites = {}
+rspawn.guestlists = {}
 
 -- invitations[guest] = host
 rspawn.invitations = {}
@@ -103,7 +103,7 @@ function rspawn:consume_levvy(player)
     return false
 end
 
-function rspawn.invites:addplayer(hostname, guestname)
+function rspawn.guestlists:addplayer(hostname, guestname)
     local guestlist = rspawn.playerspawns["guest lists"][hostname] or {}
 
     if guestlist[guestname] ~= nil then
@@ -124,7 +124,7 @@ function rspawn.invites:addplayer(hostname, guestname)
     rspawn:spawnsave()
 end
 
-function rspawn.invites:exileplayer(hostname, guestname)
+function rspawn.guestlists:exileplayer(hostname, guestname)
     local guestlist = rspawn.playerspawns["guest lists"][hostname] or {}
 
     if guestlist[guestname] == 1 then
@@ -137,11 +137,11 @@ function rspawn.invites:exileplayer(hostname, guestname)
     end
 
     minetest.chat_send_player(guestname, hostname.." banishes you!")
-    rspawn.invites:kick(hostname, guestname)
+    rspawn.guestlists:kick(hostname, guestname)
     rspawn:spawnsave()
 end
 
-function rspawn.invites:kick(hostname, guestname)
+function rspawn.guestlists:kick(hostname, guestname)
     local guest = minetest.get_player_by_name(guestname)
     local guestpos = guest:getpos()
     local hostspawnpos = rspawn.playerspawns[hostname]
@@ -152,7 +152,7 @@ function rspawn.invites:kick(hostname, guestname)
     end
 end
 
-function rspawn.invites:listguests(hostname)
+function rspawn.guestlists:listguests(hostname)
     local guests = ""
     local guestlist = rspawn.playerspawns["guest lists"][hostname] or {}
 
@@ -165,7 +165,7 @@ function rspawn.invites:listguests(hostname)
     minetest.chat_send_player(hostname, guests:sub(3))
 end
 
-function rspawn.invites:listhosts(guestname)
+function rspawn.guestlists:listhosts(guestname)
     local hosts = ""
 
     for hostname,hostguestlist in pairs(rspawn.playerspawns["guest lists"]) do
@@ -181,7 +181,7 @@ function rspawn.invites:listhosts(guestname)
     minetest.chat_send_player(guestname, hosts:sub(3))
 end
 
-function rspawn.invites:visitplayer(hostname, guestname)
+function rspawn.guestlists:visitplayer(hostname, guestname)
     local guest = minetest.get_player_by_name(guestname)
     local hostpos = rspawn.playerspawns[hostname]
 

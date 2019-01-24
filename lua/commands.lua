@@ -52,11 +52,11 @@ minetest.register_chatcommand("spawn", {
             end
         elseif #args < 3 then
             for command,action in pairs({
-                ["guests"] = function() rspawn.invites:listguests(playername) end,
-                ["hosts"] = function() rspawn.invites:listhosts(playername) end,
-                ["add"] = function(commandername,targetname) rspawn.invites:addplayer(commandername,targetname) end,
-                ["visit"] = function(commandername,targetname) rspawn.invites:visitplayer(targetname, commandername) end,
-                ["kick"] = function(commandername,targetname) rspawn.invites:exileplayer(commandername, targetname) end,
+                ["guests"] = function() rspawn.guestlists:listguests(playername) end,
+                ["hosts"] = function() rspawn.guestlists:listhosts(playername) end,
+                ["add"] = function(commandername,targetname) rspawn.guestlists:addplayer(commandername,targetname) end,
+                ["visit"] = function(commandername,targetname) rspawn.guestlists:visitplayer(targetname, commandername) end,
+                ["kick"] = function(commandername,targetname) rspawn.guestlists:exileplayer(commandername, targetname) end,
                 }) do
 
                 if args[1] == command then

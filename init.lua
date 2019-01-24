@@ -37,7 +37,7 @@ rspawn.min_z = tonumber(minetest.settings:get("rspawn.min_z") or -31000)
 rspawn.max_z = tonumber(minetest.settings:get("rspawn.max_z") or 31000)
     
 dofile(mpath.."/lua/data.lua")
-dofile(mpath.."/lua/invites.lua")
+dofile(mpath.."/lua/guestlists.lua")
 dofile(mpath.."/lua/commands.lua")
 dofile(mpath.."/lua/forceload.lua")
 dofile(mpath.."/lua/debugging.lua")
