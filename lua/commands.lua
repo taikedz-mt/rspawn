@@ -127,9 +127,8 @@ minetest.register_chatcommand("playerspawn", {
                     tpos = minetest.string_to_pos(args[2])
 
                     if tpos then
-                        if not rspawn:set_player_spawn(tname, tpos) then
-                            minetest.chat_send_player(name, name.."'s spawn could not be reset")
-                        end
+                        rspawn.playerspawns[tname] = tpos
+                        minetest.chat_send_player(name, tname.."'s spawn has been reset")
                         return
                     end
                 end
