@@ -1,5 +1,13 @@
 local spawnsfile = minetest.get_worldpath().."/dynamicspawns.lua.ser"
 
+--[[ Reconcile functions
+
+reconcile_original_spawns : convert from base implementation to invites with original spawns
+
+reconcile_guestlist_spawns : convert from "original spawns" implementation to "guest lists"
+
+--]]
+
 -- Comatibility with old behaviour - players whose original spawns had not been registered receive the one they are now using
 local function reconcile_original_spawns()
     if not rspawn.playerspawns["original spawns"] then
@@ -12,6 +20,39 @@ local function reconcile_original_spawns()
                 rspawn.playerspawns["original spawns"][playername] = rspawn.playerspawns[playername]
             end
         end
+    end
+
+    rspawn:spawnsave()
+end
+
+local function reconcile_guest(guestname, guestspawn)
+    for hostname,hostspawn in pairs(rspawn.playerspawns) do
+        if hostname ~= "guest lists" and hostname ~= guestname and hostspawn == guestspawn then
+            local hostlist = rspawn.playerspawns["guest lists"][hostname] or {}
+            hostlist[guestname] = 1
+            rspawn.playerspawns["guest lists"][hostname] = hostlist
+        end
+    end
+end
+
+local function reconcile_guestlist_spawns()
+    if not rspawn.playerspawns["guest lists"] then rspawn.playerspawns["guest lists"] = {} end
+
+    for guestname,spawnpos in pairs(rspawn.playerspawns) do
+        reconcile_guest(guestname, spawnpos)
+
+        if rspawn.playerspawns["original spawns"][guestname] then
+            rspawn.playerspawns[guestname] = rspawn.playerspawns["original spawns"][guestname]
+            rspawn.playerspawns["original spawns"][guestname] = nil
+        else
+            minetest.debug("Could not return "..guestname)
+        end
+    end
+
+    if #rspawn.playerspawns["original spawns"] == 0 then
+        rspawn.playerspawns["original spawns"] = nil
+    else
+        minetest.log("error", "Failed to reconcile all spawns")
     end
 
     rspawn:spawnsave()
@@ -48,6 +89,7 @@ function rspawn:spawnload()
     rspawn.playerspawns["pre gen"] = pregens
 
     reconcile_original_spawns()
+    reconcile_guestlist_spawns()
 
     minetest.debug("Loaded rspawn data with "..tostring(#pregens).." pregen nodes")
 end

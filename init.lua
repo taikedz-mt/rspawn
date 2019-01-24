@@ -36,11 +36,11 @@ rspawn.max_x = tonumber(minetest.settings:get("rspawn.max_x") or 31000)
 rspawn.min_z = tonumber(minetest.settings:get("rspawn.min_z") or -31000)
 rspawn.max_z = tonumber(minetest.settings:get("rspawn.max_z") or 31000)
     
-dofile(mpath.."/src/data.lua")
-dofile(mpath.."/src/invites.lua")
-dofile(mpath.."/src/commands.lua")
-dofile(mpath.."/src/forceload.lua")
-dofile(mpath.."/src/debugging.lua")
+dofile(mpath.."/lua/data.lua")
+dofile(mpath.."/lua/invites.lua")
+dofile(mpath.."/lua/commands.lua")
+dofile(mpath.."/lua/forceload.lua")
+dofile(mpath.."/lua/debugging.lua")
 
 
 
@@ -145,13 +145,6 @@ function rspawn:set_player_spawn(name, newpos)
     return true
 end
 
-local function register_original_spawn(playername, pos)
-    if not rspawn.playerspawns["original spawns"] then
-        rspawn.playerspawns["original spawns"] = {}
-    end
-    rspawn.playerspawns["original spawns"][playername] = pos
-end
-
 function rspawn:set_newplayer_spawn(player)
     -- only use for new players / players who have never had a randomized spawn
     if not player then return end
@@ -164,7 +157,6 @@ function rspawn:set_newplayer_spawn(player)
         local newpos = rspawn:get_next_spawn()
 
         if newpos then
-            register_original_spawn(playername, newpos)
             rspawn:set_player_spawn(playername, newpos)
 
         else
@@ -233,4 +225,4 @@ minetest.register_on_respawnplayer(function(player)
     end
 end)
 
-dofile(mpath.."/src/pregeneration.lua")
+dofile(mpath.."/lua/pregeneration.lua")
