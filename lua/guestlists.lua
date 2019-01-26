@@ -20,8 +20,6 @@ minetest.after(0,function()
 end)
 
 local function canvisit(hostname, guestname)
-    minetest.debug(dump(rspawn.playerspawns["guest lists"]))
-
     local glist = rspawn.playerspawns["guest lists"][hostname] or {}
     return glist[guestname] == 1
 end
