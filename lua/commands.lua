@@ -56,7 +56,8 @@ minetest.register_chatcommand("spawn", {
                 ["hosts"] = function() rspawn.guestlists:listhosts(playername) end,
                 ["add"] = function(commandername,targetname) rspawn.guestlists:addplayer(commandername,targetname) end,
                 ["visit"] = function(commandername,targetname) rspawn.guestlists:visitplayer(targetname, commandername) end,
-                ["kick"] = function(commandername,targetname) rspawn.guestlists:exileplayer(commandername, targetname) end,
+                ["exile"] = function(commandername,targetname) rspawn.guestlists:exileplayer(commandername, targetname) end,
+                ["kick"] = function(commandername, params) rspawn.guestlists:kickplayer(commandername, params) end,
                 ["town"] = function(commandername,mode) rspawn.guestlists:townset(commandername, mode) end,
                 }) do
 
@@ -73,7 +74,7 @@ minetest.register_chatcommand("spawn", {
             end
         end
         
-        minetest.chat_send_player(playername, "Please check '/help spawn'")
+        minetest.chat_send_player(playername, "Bad command. Please check '/help spawn'")
 	end
 })
 

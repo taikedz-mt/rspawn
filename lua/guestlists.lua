@@ -140,7 +140,7 @@ function rspawn.guestlists:addplayer(hostname, guestname)
     rspawn:spawnsave()
 end
 
-function rspawn.guestlists:exileplayer(hostname, guestname)
+function rspawn.guestlists:exileplayer(hostname, guestname, callername)
     local guestlist = rspawn.playerspawns["guest lists"][hostname] or {}
 
     if guestlist[guestname] == GUEST_ALLOW then
@@ -148,12 +148,23 @@ function rspawn.guestlists:exileplayer(hostname, guestname)
         rspawn.playerspawns["guest lists"][hostname] = guestlist
 
     else
-        minetest.chat_send_player(hostname, guestname.." is not in your accepted guests list.")
+        minetest.chat_send_player(callername or hostname, guestname.." is not in accepted guests list for "..hostname)
         return
     end
 
     minetest.chat_send_player(guestname, hostname.." banishes you!")
     rspawn:spawnsave()
+end
+
+function rspawn.guestlists:kickplayer(callername, params)
+    params = params:split(" ")
+    local hostname = params[2]
+    local target = params[1]
+
+    -- Caller is an explicit non-exiled guest
+    if rspawn.playerspawns[hostname] and rspawn.playerspawns[hostname][callername] == GUEST_ALLOW then
+        rspawb.guestlists:exileplayer(hostname, guestname)
+    end
 end
 
 function rspawn.guestlists:listguests(hostname)
@@ -196,7 +207,7 @@ function rspawn.guestlists:listhosts(guestname)
         if global_hostlist[hostname]["town status"] == "on" and
           global_hostlist[hostname][guestname] ~= GUEST_BAN
           then
-            hosts = hosts..", "..hostname
+            hosts = hosts..", "..hostname.." (town)"
         end
     end
 
