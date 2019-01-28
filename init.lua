@@ -3,14 +3,6 @@ rspawn.playerspawns = {}
 
 local mpath = minetest.get_modpath("rspawn")
 
-local function notnil_or(d, v)
-    if v == nil then
-        return d
-    else
-        return v
-    end
-end
-
 -- Water level, plus one to ensure we are above the sea.
 local water_level = tonumber(minetest.settings:get("water_level", "0") )
 local radial_step = 16
@@ -24,8 +16,8 @@ rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn") ~= false -- fro
 
 -- rSpawn specific settings
 rspawn.debug_on = minetest.settings:get_bool("rspawn.debug")
-rspawn.spawnanywhere = notnil_or(true, minetest.settings:get_bool("rspawn.spawn_anywhere") )
-rspawn.kick_on_fail = notnil_or(false, minetest.settings:get_bool("rspawn.kick_on_fail"))
+rspawn.spawnanywhere = minetest.settings:get_bool("rspawn.spawn_anywhere") ~= false
+rspawn.kick_on_fail = minetest.settings:get_bool("rspawn.kick_on_fail") == true
 rspawn.max_pregen_spawns = tonumber(minetest.settings:get("rspawn.max_pregen") or 5)
 rspawn.search_radius = tonumber(minetest.settings:get("rspawn.search_radius") or 32)
 rspawn.gen_frequency = tonumber(minetest.settings:get("rspawn.gen_frequency") or 30)

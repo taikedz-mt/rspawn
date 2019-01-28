@@ -7,7 +7,7 @@ local cooldown_time = tonumber(minetest.settings:get("rspawn.cooldown_time")) or
 minetest.register_privilege("spawn", "Can teleport to a spawn position and manage shared spawns.")
 minetest.register_privilege("setspawn", "Can manually set a spawn point.")
 minetest.register_privilege("newspawn", "Can get a new randomized spawn position.")
-minetest.register_privilege("spawnadmin", "Can clean up timers and set new spawns for players.")
+minetest.register_privilege("spawnadmin", "Can set new spawns for players.")
 
 -- Support functions
 
@@ -35,7 +35,7 @@ end
 
 minetest.register_chatcommand("spawn", {
 	description = "Teleport to your spawn, or manage guests in your spawn.",
-	params = "[ add <player> | visit <player> | kick <player> | guests | hosts ]",
+	params = "[ add <player> | visit <player> | kick <player> | guests | hosts | town { open | close | ban <player> | unban <player> } ]",
 	privs = "spawn",
 	func = function(playername, args)
 		local target = rspawn.playerspawns[playername]
@@ -57,6 +57,7 @@ minetest.register_chatcommand("spawn", {
                 ["add"] = function(commandername,targetname) rspawn.guestlists:addplayer(commandername,targetname) end,
                 ["visit"] = function(commandername,targetname) rspawn.guestlists:visitplayer(targetname, commandername) end,
                 ["kick"] = function(commandername,targetname) rspawn.guestlists:exileplayer(commandername, targetname) end,
+                ["town"] = function(commandername,mode) rspawn.guestlists:townset(commandername, mode) end,
                 }) do
 
                 if args[1] == command then

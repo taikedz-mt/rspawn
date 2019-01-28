@@ -64,8 +64,14 @@ function rspawn:get_next_spawn()
 
     if len_pgen() > 0 then
         nspawn = get_pgen(len_pgen() )
-        rspawn:debug("Returning pregenerated spawn",nspawn)
         set_pgen(len_pgen(), nil)
+
+        -- Someone might have claimed the area since.
+        if minetest.is_protected(nspawn, "") then
+            return rspawn:get_next_spawn()
+        else
+            rspawn:debug("Returning pregenerated spawn",nspawn)
+        end
     end
 
     return nspawn

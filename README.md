@@ -5,9 +5,9 @@ Causes players to receive a spawn point anywhere on the map. Players will likely
 ## Features
 
 * Player is assigned randomized spawnpoint on joining
+    * New players will not spawn into protected areas
 * Player will respawn at their spawnpoint if they die.
-    * If `beds` spawning is active, then beds can be used to reset the players' spawn point.
-* Players will not spawn in spaces that are protected
+    * If `beds` spawning is active, then beds can be used to set players' re-spawn point (they still go to their main spawnpoint on invoking `/spawn`).
 * Commands
     * Players can return to their spawn point with the `/spawn` command if they have `spawn` privilege.
         * Players can invite other players to join their spawn - see "Spawn invites" below
@@ -24,10 +24,20 @@ Randomized spawning typically causes players to spawn far from eachother. If pla
 The player issuing the invite (host) must typically pay a levvy when adding another player.
 
 * `/spawn add <player>` - allow another player to visit your spawn directly, or lift their exile
-* `/spawn kick <player>` - revoke rights to visit you, and if they are in your space, returns them to their own spawn
+* `/spawn kick <player>` - revoke rights to visit you
+    * if the exiled player gets close to your spawn, they are kicked back to their own spawn
 * `/spawn visit <player>` - visit a player's spawn
 * `/spawn guests` - see who you have added to your spawn
 * `/spawn hosts` - see who has added you to their spawn
+
+### Town hosting
+
+You can host a town from your spawn if you wish. Hosting a town means that any player who connects to the server will be able to visit your spawn. You can still `/spawn kick <playername>` individually in this mode. If you switch off town hosting, only allowed guests in your normal guestlist can visit.
+
+There is no levvy on hosting a town.
+
+* `/spawn town { open | close }` - switch town hosting on or off.
+* `/spawn town { ban | unban } <playername>` - ban or unban a player from a town
 
 ## Settings
 
@@ -35,7 +45,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
 
 *Generic settings used*
 
-* `name` - on servers, sets the name of the admin, players can spawn in areas protected by the admin.
+* `name` - used for knowing the server admin's name
 * `water_level` - Spawns are always set above water level, default `1`
 * `static_spawnpoint` - main position the player will start at, default `{0,0,0}`
 * `enable_bed_respawn` - from `beds` mod - if active, then respawning will happen at beds, instead of randomized spawnpoint
@@ -43,36 +53,40 @@ Note that the spawn generation is performed in the background on a timer, allowi
 *rspawn-specific settings*
 
 * Settings related to spawn generation
-    * `rspawn.max_pregen` - maximum number of spawn points to pre-generate, default `5`
-    * `rspawn.search_radius` - lateral radius around random point, within which a spawn poitn will be sought, default `32`
-    * `rspawn.gen_frequency` - how frequently (in seconds) to generate a new spawn point, default `30`
+    * `rspawn.max_pregen` - maximum number of spawn points to pre-generate, default `20`
+    * `rspawn.search_radius` - lateral radius around random point, within which a spawn point will be sought, default `32`
+    * `rspawn.gen_frequency` - how frequently (in seconds) to generate a new spawn point, default `30`, increase this on slower servers
 * `rspawn.spawn_anywhere` - whether to spawn anywhere in the world at sea level
     * default `true`
     * if `false`, will randomize around the static spawn point
 * `rspawn.cooldown_time` - how many seconds between two uses of `/newspawn`, per player
-* `rspawn.levvy_name` - name of the block to use as levvy charge on the player issuing an invitation, default `default:cobble`
-* `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `10`
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
 * `rspawn.spawn_block` - place this custom block under the user's spawn point
+* Guestlist and town related settings
+    * `rspawn.levvy_name` - name of the block to use as levvy charge on the player issuing an invitation, default `default:cobble`
+    * `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `10`
+    * `rspawn.kick_period` - how frequently to check if exiled players are too near their locus of exile, default `1` (seconds)
+    * `rspawn.exile_distance` - distance from exile locus at which player gets bounced back to their own spawn, default `64` (nodes)
 * `rspawn.debug` - whether to print debugging messages, default `false`
-* Bounds limiting - you can limit the random spawning to a given area if you wish:
+* Bounds limiting - you can limit the random spawning search area to a given subsection of the global map if you wish:
     * `rspawn.min_x`, `rspawn.max_x`, `rspawn.min_z`, `rspawn.max_z` as expected
 
 ## Troubleshooting
 
+As admin, you will receive notifications of inability to generate spawns when players join without being set a spawn.
+
 You can turn on `rspawn.debug = true` to see debug in logs.
 
-If the generation log shows `0 air nodes found within <x>` on more than 2-3 consecutive tries, you may want to check the max number of forceloaded blocks configured - see `max_forceloaded_blocks`.
+Spawn generation uses a temporary forceload to read the blocks in the area ; it then releases the forceload after operating, so should not depend on the `max_forceloaded_blocks` setting.
 
-This should be at least `2*(rspawn.search_radius^3) / (16^3)`, so with the default `rspawn.search_radius = 32`, you should have at least `max_forceloaded_blocks = 8`
+If the generation log shows `0 air nodes found within <x>` on more than 2-3 consecutive tries, you may want to check that another mod is not forceloading blocks and then not subsequently clearing them.
 
-Also check that another mod is not forceloading blocks and not clearing them.
-
-You may also find some mods (rarely) do permanent forceloads. In your world folder `~/.minetest/worlds/<yourworld>` there should eb a `force_loaded.txt` - see that its contents are simply `return {}`; if there is data in the table, then something else is forceloading blocks.
+You may also find some mods do permanent forceloads by design (though this should be rare). In your world folder `~/.minetest/worlds/<yourworld>` there should eb a `force_loaded.txt` - see that its contents are simply `return {}`; if there is data in the table, then something else is forceloading blocks with permanence.
 
 Resolutions in order of best to worst:
 
 * identify the mod and have it clear them properly (ideal)
+    * on UNIX/Linux you should be able to run `grep -rl forceload ~/.minetest/mods/` to see all mod files where forceloading is being done
 * increase the max number of forceloaded blocks
     * (not great - you will effectively be simply mitigating a forceloaded-blocks-related memory leak)
 * Stop minetest, delete the `force_loaded.txt` file, and start it again
