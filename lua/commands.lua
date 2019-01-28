@@ -39,7 +39,7 @@ minetest.register_chatcommand("spawn", {
 	privs = "spawn",
 	func = function(playername, args)
 		local target = rspawn.playerspawns[playername]
-        local args = args:split(" ")
+        local args = args:split(" ", false, 1)
 
         if #args == 0 then
             if target then
@@ -50,7 +50,7 @@ minetest.register_chatcommand("spawn", {
                 minetest.chat_send_player(playername, "You have no spawn position!")
                 return
             end
-        elseif #args < 3 then
+        elseif #args < 4 then
             for command,action in pairs({
                 ["guests"] = function() rspawn.guestlists:listguests(playername) end,
                 ["hosts"] = function() rspawn.guestlists:listhosts(playername) end,
@@ -67,7 +67,7 @@ minetest.register_chatcommand("spawn", {
                         return
 
                     elseif #args == 1 then
-                        action()
+                        action(playername)
                         return
                     end
                 end

@@ -3,7 +3,7 @@ rspawn.guestlists = {}
 
 local kick_step = 0
 
-local kick_period = tonumber(minetest.settings:get("rspawn.kick_period")) or 1
+local kick_period = tonumber(minetest.settings:get("rspawn.kick_period")) or 3
 local exile_distance = tonumber(minetest.settings:get("rspawn.exile_distance")) or 64
 
 local GUEST_BAN = 0
@@ -107,13 +107,21 @@ end
 
 local function canvisit(hostname, guestname)
     local host_glist = rspawn.playerspawns["guest lists"][hostname] or {}
-    local global_glist = rspawn.playerspawns["town lists"] or {}
+    local town_lists = rspawn.playerspawns["town lists"] or {}
 
     return (
-        -- Host has specific guest entry and guest is not banned
-        (host_glist[guestname] and (host_glist[guestname] == GUEST_BAN or host_glist[guestname] == GUEST_TOWNBAN)) or
-        -- Host is global host
-        (not host_glist[guestname] and global_glist[hostname])
+        -- Guest not explicitly banned
+        (
+            not host_glist[guestname] or
+            host_glist[guestname] ~= GUEST_BAN
+        )
+        and
+        -- Host is open town, and guest is not banned
+        (
+            town_lists[hostname] and
+            town_lists[hostname]["town status"] == "on" and
+            town_lists[hostname][guestname] ~= GUEST_BAN
+        )
     )
 end
 
@@ -202,10 +210,10 @@ function rspawn.guestlists:listhosts(guestname)
         end
     end
 
-    local global_hostlist = rspawn.playerspawns["town lists"]
-    for _,hostname in ipairs(global_hostlist) do
-        if global_hostlist[hostname]["town status"] == "on" and
-          global_hostlist[hostname][guestname] ~= GUEST_BAN
+    local global_hostlist = rspawn.playerspawns["town lists"] or {}
+    for hostname,host_banlist in pairs(global_hostlist) do
+        if host_banlist["town status"] == "on" and
+          host_banlist[guestname] ~= GUEST_BAN
           then
             hosts = hosts..", "..hostname.." (town)"
         end
@@ -235,12 +243,13 @@ function rspawn.guestlists:visitplayer(hostname, guestname)
 end
 
 function rspawn.guestlists:townset(hostname, params)
+    params = params or ""
     params = params:split(" ")
 
     local mode = params[1]
     local guestname = params[2]
-    local global_glist = rspawn.playerspawns["town lists"] or {}
-    local town_banlist = global_glist[hostname] or {}
+    local town_lists = rspawn.playerspawns["town lists"] or {}
+    local town_banlist = town_lists[hostname] or {}
 
     if mode == "open" then
         town_banlist["town status"] = "on"
@@ -249,6 +258,10 @@ function rspawn.guestlists:townset(hostname, params)
     elseif mode == "close" then
         town_banlist["town status"] = "off"
         minetest.chat_send_all(hostname.." is not currently a town - only guests may directly visit.")
+
+    elseif mode == "status" then
+        minetest.chat_send_player(hostname, "Town mode is: "..town_banlist["town status"])
+        return
 
     elseif mode == "ban" and guestname then
         town_banlist[guestname] = GUEST_BAN
@@ -259,12 +272,12 @@ function rspawn.guestlists:townset(hostname, params)
         minetest.chat_send_all(guestname.." is no longer exiled from  "..hostname.."'s town.")
 
     else
-        minetest.chat_send_player(hostname, "Unknown parameterless town operation: "..mode)
+        minetest.chat_send_player(hostname, "Unknown parameterless town operation: "..tostring(mode) )
         return
     end
 
-    global_glist[hostname] = town_banlist
-    rspawn.playerspawns["town lists"] = global_glist
+    town_lists[hostname] = town_banlist
+    rspawn.playerspawns["town lists"] = town_lists
 
     rspawn:spawnsave()
 end
@@ -283,7 +296,7 @@ minetest.register_globalstep(function(dtime)
         local guestname = guest:get_player_name()
 
         for _,player_list_name in ipairs({"guest lists", "town lists"}) do
-            for hostname,host_guestlist in pairs(rspawn.playesrpawns[player_list_name]) do
+            for hostname,host_guestlist in pairs(rspawn.playerspawns[player_list_name] or {}) do
 
                 if host_guestlist[guestname] == GUEST_BAN then
                     local vdist = vector.distance(guestpos, rspawn.playerspawns[hostname])

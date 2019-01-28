@@ -66,7 +66,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
 * Guestlist and town related settings
     * `rspawn.levvy_name` - name of the block to use as levvy charge on the player issuing an invitation, default `default:cobble`
     * `rspawn.levvy_qtty` - number of blocks to levvy from the player who issued the invitation, default `10`
-    * `rspawn.kick_period` - how frequently to check if exiled players are too near their locus of exile, default `1` (seconds)
+    * `rspawn.kick_period` - how frequently to check if exiled players are too near their locus of exile, default `3` (seconds)
     * `rspawn.exile_distance` - distance from exile locus at which player gets bounced back to their own spawn, default `64` (nodes)
 * `rspawn.debug` - whether to print debugging messages, default `false`
 * Bounds limiting - you can limit the random spawning search area to a given subsection of the global map if you wish:
