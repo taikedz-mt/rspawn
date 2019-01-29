@@ -24,9 +24,10 @@ Randomized spawning typically causes players to spawn far from eachother. If pla
 The player issuing the invite (host) must typically pay a levvy when adding another player.
 
 * `/spawn add <player>` - allow another player to visit your spawn directly (levvy must be paid), or lift their exile (no levvy to pay)
-* `/spawn exile <player>` - revoke rights to visit you
+* `/spawn kick <targetplayer> [<hostplayer>]`
+    * revoke rights to visit you
     * if the exiled player gets close to your spawn, they are kicked back to their own spawn
-* `/spawn kick <targetplayer> <hostplayer>` - if you are a guest of `hostplayer`, you can exile `targetplayer` on their behalf
+    * if you are an explicit guest of `hostplayer` (not just a town visitor), you can exile `targetplayer` on their behalf
 * `/spawn visit <player>` - visit a player's spawn
 * `/spawn guests` - see who you have added to your spawn
 * `/spawn hosts` - see whose spawns you may visit
