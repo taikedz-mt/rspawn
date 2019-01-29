@@ -149,6 +149,10 @@ function rspawn.guestlists:addplayer(hostname, guestname)
 end
 
 function rspawn.guestlists:exileplayer(hostname, guestname, callername)
+    if hostname == guestname then
+        minetest.chat_send_player(hostname, "Cannot ban yourself!")
+        return
+    end
     local guestlist = rspawn.playerspawns["guest lists"][hostname] or {}
 
     if guestlist[guestname] == GUEST_ALLOW then
@@ -253,17 +257,17 @@ function rspawn.guestlists:townset(hostname, params)
 
     if mode == "open" then
         town_banlist["town status"] = "on"
-        minetest.chat_send_all(hostname.." is opened as a town!")
+        minetest.chat_send_all(hostname.." is opens access to all!")
 
     elseif mode == "close" then
         town_banlist["town status"] = "off"
-        minetest.chat_send_all(hostname.." is not currently a town - only guests may directly visit.")
+        minetest.chat_send_all(hostname.." closes town access - only guests may directly visit.")
 
     elseif mode == "status" then
         minetest.chat_send_player(hostname, "Town mode is: "..town_banlist["town status"])
         return
 
-    elseif mode == "ban" and guestname then
+    elseif mode == "ban" and guestname and guestname ~= hostname then
         town_banlist[guestname] = GUEST_BAN
         minetest.chat_send_all(guestname.." is exiled from "..hostname.."'s town.")
 
@@ -292,23 +296,27 @@ minetest.register_globalstep(function(dtime)
     end
 
     for _,guest in ipairs(minetest.get_connected_players()) do
-        local guestpos = guest:getpos()
         local guestname = guest:get_player_name()
+        local playerprivs = minetest.get_player_privs(guestname)
 
-        for _,player_list_name in ipairs({"guest lists", "town lists"}) do
-            for hostname,host_guestlist in pairs(rspawn.playerspawns[player_list_name] or {}) do
+        if not (playerprivs.basic_privs or playerprivs.server) then
+            local guestpos = guest:getpos()
 
-                if host_guestlist[guestname] == GUEST_BAN then
-                    local vdist = vector.distance(guestpos, rspawn.playerspawns[hostname])
+            for _,player_list_name in ipairs({"guest lists", "town lists"}) do
+                for hostname,host_guestlist in pairs(rspawn.playerspawns[player_list_name] or {}) do
 
-                    if vdist < exile_distance then
-                        guest:setpos(rspawn.playerspawns[guestname])
-                        minetest.chat_send_player(guestname, "You got too close to "..hostname.."'s turf.")
-                        return
+                    if host_guestlist[guestname] == GUEST_BAN then
+                        local vdist = vector.distance(guestpos, rspawn.playerspawns[hostname])
 
-                    elseif vdist < exile_distance*1.5 then
-                        minetest.chat_send_player(guestname, "You are getting too close to "..hostname.."'s turf.")
-                        return
+                        if vdist < exile_distance then
+                            guest:setpos(rspawn.playerspawns[guestname])
+                            minetest.chat_send_player(guestname, "You got too close to "..hostname.."'s turf.")
+                            return
+
+                        elseif vdist < exile_distance*1.5 then
+                            minetest.chat_send_player(guestname, "You are getting too close to "..hostname.."'s turf.")
+                            return
+                        end
                     end
                 end
             end
