@@ -152,7 +152,7 @@ function rspawn.guestlists:addplayer(hostname, guestname)
     minetest.log("action", "rspawn - "..hostname.." adds "..guestname.." to their spawn")
 end
 
-function rspawn.guestlists:exileplayer(hostname, guestname, notifyname)
+function rspawn.guestlists:exileplayer(hostname, guestname)
     if hostname == guestname then
         minetest.chat_send_player(hostname, "Cannot ban yourself!")
         return false
@@ -164,7 +164,7 @@ function rspawn.guestlists:exileplayer(hostname, guestname, notifyname)
         rspawn.playerspawns["guest lists"][hostname] = guestlist
 
     else
-        minetest.chat_send_player(notifyname or hostname, guestname.." is not in accepted guests list for "..hostname)
+        minetest.chat_send_player(hostname, guestname.." is not in accepted guests list for "..hostname)
         return false
     end
 
@@ -174,21 +174,10 @@ function rspawn.guestlists:exileplayer(hostname, guestname, notifyname)
     return true
 end
 
-function rspawn.guestlists:kickplayer(callername, params)
-    params = params:split(" ")
-    local guestname = params[1]
-    local hostname = params[2]
+function rspawn.guestlists:kickplayer(callername, guestname)
 
     -- Caller is an explicit non-exiled guest
     if hostname then
-        if rspawn.playerspawns["guest lists"][hostname] and rspawn.playerspawns["guest lists"][hostname][callername] == GUEST_ALLOW then
-            if rspawn.guestlists:exileplayer(hostname, guestname, callername) then
-                minetest.chat_send_player(callername, "Evicted "..guestname.." from "..hostname.."'s spawn")
-                minetest.log("action", "rspawn - "..callername.." evicts "..guestname.." on behalf of "..hostname)
-            end
-        else
-            minetest.chat_send_player(callername, "You are not permitted to act on behalf of "..hostname)
-        end
     else
         if rspawn.guestlists:exileplayer(callername, guestname) then
             minetest.chat_send_player(callername, "Evicted "..guestname.." from "..callername.."'s spawn")
@@ -249,6 +238,8 @@ function rspawn.guestlists:listhosts(guestname)
 end
 
 function rspawn.guestlists:visitplayer(hostname, guestname)
+    if not (hostname and guestname) then return end
+
     local guest = minetest.get_player_by_name(guestname)
     local hostpos = rspawn.playerspawns[hostname]
 
@@ -264,7 +255,49 @@ function rspawn.guestlists:visitplayer(hostname, guestname)
     end
 end
 
+local function townban(callername, guestname, hostname)
+    if not (callername and guestname) then return end
+
+    hostname = hostname or callername
+    if hostname == callername or (rspawn.playerspawns["guest lists"][hostname] and rspawn.playerspawns["guest lists"][hostname][callername] == GUEST_ALLOW) then
+        if not rspawn.playerspawns["town lists"][hostname] then
+            minetest.chat_send_player(callername, "No such town "..hostname)
+            return
+        end
+
+        rspawn.playerspawns["town lists"][hostname][guestname] = GUEST_BAN
+
+        minetest.chat_send_player(callername, "Evicted "..guestname.." from "..hostname.."'s spawn")
+        minetest.log("action", "rspawn - "..callername.." evicts "..guestname.." on behalf of "..hostname)
+    else
+        minetest.chat_send_player(callername, "You are not permitted to act on behalf of "..hostname)
+    end
+    rspawn:spawnsave()
+end
+
+local function townunban(callername, guestname, hostname)
+    if not (callername and guestname) then return end
+
+    hostname = hostname or callername
+    if hostname == callername or (rspawn.playerspawns["guest lists"][hostname] and rspawn.playerspawns["guest lists"][hostname][callername] == GUEST_ALLOW) then
+        if not rspawn.playerspawns["town lists"][hostname] then
+            minetest.chat_send_player(callername, "No such town "..hostname)
+            return
+        end
+
+        rspawn.playerspawns["town lists"][hostname][guestname] = nil
+
+        minetest.chat_send_player(callername, "Evicted "..guestname.." from "..hostname.."'s spawn")
+        minetest.log("action", "rspawn - "..callername.." evicts "..guestname.." on behalf of "..hostname)
+    else
+        minetest.chat_send_player(callername, "You are not permitted to act on behalf of "..hostname)
+    end
+    rspawn:spawnsave()
+end
+
 function rspawn.guestlists:townset(hostname, params)
+    if not hostname then return end
+
     params = params or ""
     params = params:split(" ")
 
@@ -286,12 +319,10 @@ function rspawn.guestlists:townset(hostname, params)
         return
 
     elseif mode == "ban" and guestname and guestname ~= hostname then
-        town_banlist[guestname] = GUEST_BAN
-        minetest.chat_send_all(guestname.." is exiled from "..hostname.."'s town.")
+        townban(hostname, guestname, params[3])
 
     elseif mode == "unban" and guestname then
-        town_banlist[guestname] = nil
-        minetest.chat_send_all(guestname.." is no longer exiled from  "..hostname.."'s town.")
+        townunban(hostname, guestname, params[3])
 
     else
         minetest.chat_send_player(hostname, "Unknown parameterless town operation: "..tostring(mode) )

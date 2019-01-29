@@ -35,7 +35,7 @@ end
 
 minetest.register_chatcommand("spawn", {
 	description = "Teleport to your spawn, or manage guests in your spawn.",
-	params = "[ add <player> | visit <player> | kick <player> | guests | hosts | town { open | close | ban <player> | unban <player> } ]",
+	params = "[ add <player> | visit <player> | kick <player> | guests | hosts | town { open | close | ban <player> [<town>] | unban <player> [<town>] } ]",
 	privs = "spawn",
 	func = function(playername, args)
 		local target = rspawn.playerspawns[playername]
