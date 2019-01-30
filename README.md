@@ -1,6 +1,6 @@
 # `[rspawn]` Randomized Spawning for Minetest
 
-Causes players to receive a spawn point anywhere on the map. Players will likely spawn veeery far from eachother into prisitine areas.
+Causes players to receive a spawn point anywhere on the map. Players will likely spawn very far from eachother into prisitine areas.
 
 ## Features
 
@@ -10,7 +10,8 @@ Causes players to receive a spawn point anywhere on the map. Players will likely
     * If `beds` spawning is active, then beds can be used to set players' re-spawn point (they still go to their main spawnpoint on invoking `/spawn`).
 * Commands
     * Players can return to their spawn point with the `/spawn` command if they have `spawn` privilege.
-        * Players can invite other players to join their spawn - see "Spawn invites" below
+        * Players can invite other players to join their spawn - see "Spawn guests" below
+        * Players can allow any other player to visit their spawn - see "Town hosting" below
 	* Players can request a new spawn point by typing `/newspawn` if they have the `newspawn` privilege.
 	* Players can set their spawn point by typing `/setspawn` if they have the `setspawn` privelege.
     * Moderator players can assign a new random spawn for another player using `/playerspawn` if they have the `spawnadmin` privilege.
@@ -31,6 +32,8 @@ The player issuing the invite (host) must typically pay a levvy when adding anot
 * `/spawn guests` - see who you have added to your spawn
 * `/spawn hosts` - see whose spawns you may visit
 
+Guests can help the spawn owner manage bans on their town.
+
 ### Town hosting
 
 You can host a town from your spawn if you wish. Hosting a town means that any player who connects to the server will be able to visit your spawn. You can still `/spawn kick <playername>` individually in this mode. If you switch off town hosting, only allowed guests in your normal guestlist can visit.
@@ -40,6 +43,10 @@ There is no levvy on hosting a town.
 * `/spawn town { open | close }` - switch town hosting on or off.
 * `/spawn town { ban | unban } <playername> [<town>]` - ban or unban a player from a town
     * Town owners can use this, as well as unexiled guests of the town owner
+
+Explicit guests can ban/unban other players from a town.
+
+Town owner can forcibly ban a player by first adding the player to their guest list, and then exiling them. Guests cannot override this.
 
 ## Settings
 
@@ -94,7 +101,7 @@ Resolutions in order of best to worst:
 * Stop minetest, delete the `force_loaded.txt` file, and start it again
     * (bad - some things in the mods using the forceload mechanism may break)
 
-## Singple Player Mode
+## Single Player Mode
 
 This mod is mainly intended for use on servers with multiple players.
 

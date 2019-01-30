@@ -32,7 +32,7 @@ local function find_levvy(player)
     local i
 
     if not player then
-        minetest.log("action", "Tried to access undefined player")
+        minetest.log("error", "[rspawn] Levvy : Tried to access undefined player")
         return false
     end
 
@@ -41,7 +41,7 @@ local function find_levvy(player)
     local total_count = 0
 
     if not player_inv then
-        minetest.log("action", "Could not access inventory for "..pname)
+        minetest.log("error", "[rspawn] Levvy : Could not access inventory for "..pname)
         return false
     end
 
@@ -67,7 +67,7 @@ end
 
 function rspawn:consume_levvy(player)
     if not player then
-        minetest.log("action", "Tried to access undefined player")
+        minetest.log("error", "[rspawn] Levvy : Tried to access undefined player")
         return false
     end
 
@@ -103,10 +103,6 @@ function rspawn:consume_levvy(player)
     return false
 end
 
-local function d(stuff)
-    minetest.debug(dump(stuff))
-end
-
 -- Visitation rights check
 
 local function canvisit(hostname, guestname)
@@ -136,12 +132,14 @@ function rspawn.guestlists:addplayer(hostname, guestname)
     if guestlist[guestname] ~= nil then
         if guestlist[guestname] == GUEST_BAN then
             minetest.chat_send_player(guestname, hostname.." let you back into their spawn.")
+            minetest.log("action", "[rspawn] "..hostname.." lifted exile on "..guestname)
         end
         guestlist[guestname] = GUEST_ALLOW
 
     elseif rspawn:consume_levvy(minetest.get_player_by_name(hostname) ) then -- Automatically notifies host if they don't have enough
         guestlist[guestname] = GUEST_ALLOW
         minetest.chat_send_player(guestname, hostname.." added you to their spawn! You can now visit them with /spawn visit "..hostname)
+        minetest.log("action", "[rspawn] "..hostname.." added "..guestname.." to their spawn")
     else
         return
     end
@@ -149,7 +147,6 @@ function rspawn.guestlists:addplayer(hostname, guestname)
     minetest.chat_send_player(hostname, guestname.." is allowed to visit your spawn.")
     rspawn.playerspawns["guest lists"][hostname] = guestlist
     rspawn:spawnsave()
-    minetest.log("action", "rspawn - "..hostname.." adds "..guestname.." to their spawn")
 end
 
 function rspawn.guestlists:exileplayer(hostname, guestname)
@@ -174,15 +171,10 @@ function rspawn.guestlists:exileplayer(hostname, guestname)
     return true
 end
 
-function rspawn.guestlists:kickplayer(callername, guestname)
-
-    -- Caller is an explicit non-exiled guest
-    if hostname then
-    else
-        if rspawn.guestlists:exileplayer(callername, guestname) then
-            minetest.chat_send_player(callername, "Evicted "..guestname.." from "..callername.."'s spawn")
-            minetest.log("action", "rspawn - "..callername.." evicts "..guestname)
-        end
+function rspawn.guestlists:kickplayer(hostname, guestname)
+    if rspawn.guestlists:exileplayer(hostname, guestname) then
+        minetest.chat_send_player(hostname, "Evicted "..guestname.." from your spawn")
+        minetest.log("action", "rspawn - "..hostname.." evicts "..guestname)
     end
 end
 
@@ -195,8 +187,16 @@ function rspawn.guestlists:listguests(hostname)
         guests = ", You are an active town host."
     end
 
+    -- Explicit guests
     for guestname,status in pairs(guestlist) do
-        if status == GUEST_ALLOW then status = "" else status = " (exiled)" end
+        if status == GUEST_ALLOW then status = "" else status = " (exiled guest)" end
+
+        guests = guests..", "..guestname..status
+    end
+
+    -- Town bans - always list so this can be maanged even when town is closed
+    for guestname,status in pairs(global_hosts[hostname] or {}) do
+        if status == GUEST_ALLOW then status = "" else status = " (banned from town)" end
 
         guests = guests..", "..guestname..status
     end
@@ -249,17 +249,27 @@ function rspawn.guestlists:visitplayer(hostname, guestname)
     end
 
     if guest and canvisit(hostname, guestname) then
+        minetest.log("action", "[rspawn] "..guestname.." visits "..hostname.." (/spawn visit)")
         guest:setpos(hostpos)
     else
         minetest.chat_send_player(guestname, "Could not visit "..hostname)
     end
 end
 
+local function act_on_behalf(hostname, callername)
+    return hostname == callername or -- caller is the town owner, always allow
+        ( -- caller can act on behalf of town owner
+            rspawn.playerspawns["guest lists"][hostname] and
+            rspawn.playerspawns["guest lists"][hostname][callername] == GUEST_ALLOW
+        )
+end
+
 local function townban(callername, guestname, hostname)
     if not (callername and guestname) then return end
 
     hostname = hostname or callername
-    if hostname == callername or (rspawn.playerspawns["guest lists"][hostname] and rspawn.playerspawns["guest lists"][hostname][callername] == GUEST_ALLOW) then
+
+    if act_on_behalf(hostname, callername) then
         if not rspawn.playerspawns["town lists"][hostname] then
             minetest.chat_send_player(callername, "No such town "..hostname)
             return
@@ -268,7 +278,7 @@ local function townban(callername, guestname, hostname)
         rspawn.playerspawns["town lists"][hostname][guestname] = GUEST_BAN
 
         minetest.chat_send_player(callername, "Evicted "..guestname.." from "..hostname.."'s spawn")
-        minetest.log("action", "rspawn - "..callername.." evicts "..guestname.." on behalf of "..hostname)
+        minetest.log("action", "[rspawn] - "..callername.." evicts "..guestname.." on behalf of "..hostname)
     else
         minetest.chat_send_player(callername, "You are not permitted to act on behalf of "..hostname)
     end
@@ -279,7 +289,7 @@ local function townunban(callername, guestname, hostname)
     if not (callername and guestname) then return end
 
     hostname = hostname or callername
-    if hostname == callername or (rspawn.playerspawns["guest lists"][hostname] and rspawn.playerspawns["guest lists"][hostname][callername] == GUEST_ALLOW) then
+    if act_on_behalf(hostname, callername) then
         if not rspawn.playerspawns["town lists"][hostname] then
             minetest.chat_send_player(callername, "No such town "..hostname)
             return
@@ -288,7 +298,7 @@ local function townunban(callername, guestname, hostname)
         rspawn.playerspawns["town lists"][hostname][guestname] = nil
 
         minetest.chat_send_player(callername, "Evicted "..guestname.." from "..hostname.."'s spawn")
-        minetest.log("action", "rspawn - "..callername.." evicts "..guestname.." on behalf of "..hostname)
+        minetest.log("action", "[rspawn] - "..callername.." lifts eviction on "..guestname.." on behalf of "..hostname)
     else
         minetest.chat_send_player(callername, "You are not permitted to act on behalf of "..hostname)
     end
@@ -309,10 +319,12 @@ function rspawn.guestlists:townset(hostname, params)
     if mode == "open" then
         town_banlist["town status"] = "on"
         minetest.chat_send_all(hostname.." is opens access to all!")
+        minetest.log("action", "[rspawn] town: "..hostname.." sets their spawn to open")
 
     elseif mode == "close" then
         town_banlist["town status"] = "off"
         minetest.chat_send_all(hostname.." closes town access - only guests may directly visit.")
+        minetest.log("action", "[rspawn] town: "..hostname.." sets their spawn to closed")
 
     elseif mode == "status" then
         minetest.chat_send_player(hostname, "Town mode is: "..town_banlist["town status"])
@@ -355,14 +367,21 @@ minetest.register_globalstep(function(dtime)
                 for hostname,host_guestlist in pairs(rspawn.playerspawns[player_list_name] or {}) do
 
                     if host_guestlist[guestname] == GUEST_BAN then
+                        -- Check distance of guest from banned pos
                         local vdist = vector.distance(guestpos, rspawn.playerspawns[hostname])
 
-                        if vdist < exile_distance then
+                        -- Check distance of guest from their own pos
+                        -- If their spawn is very close to one they are banned from,
+                        -- and they are close to their own, kick should not occur
+                        local sdist = vector.distance(guestpos, rspawn.playerspawns[guestname])
+
+                        if vdist < exile_distance and sdist > exile_distance then
                             guest:setpos(rspawn.playerspawns[guestname])
                             minetest.chat_send_player(guestname, "You got too close to "..hostname.."'s turf.")
+                            minetest.log("action", "[rspawn] Auto-kicked "..guestname.." for being too close to "..hostname.."'s spawn")
                             return
 
-                        elseif vdist < exile_distance*1.5 then
+                        elseif vdist < exile_distance*1.5 and sdist > exile_distance then
                             minetest.chat_send_player(guestname, "You are getting too close to "..hostname.."'s turf.")
                             return
                         end
