@@ -378,14 +378,14 @@ minetest.register_globalstep(function(dtime)
         kick_step = 0
     end
 
-    for _,guest in ipairs(minetest.get_connected_players()) do
+    for _x,guest in ipairs(minetest.get_connected_players()) do
         local guestname = guest:get_player_name()
         local playerprivs = minetest.get_player_privs(guestname)
 
         if not (playerprivs.basic_privs or playerprivs.server) then
             local guestpos = guest:getpos()
 
-            for _,player_list_name in ipairs({"guest lists", "town lists"}) do
+            for _y,player_list_name in ipairs({"guest lists", "town lists"}) do
                 for hostname,host_guestlist in pairs(rspawn.playerspawns[player_list_name] or {}) do
 
                     if host_guestlist[guestname] == GUEST_BAN then
@@ -401,11 +401,9 @@ minetest.register_globalstep(function(dtime)
                             guest:setpos(rspawn.playerspawns[guestname])
                             minetest.chat_send_player(guestname, "You got too close to "..hostname.."'s turf.")
                             minetest.log("action", "[rspawn] Auto-kicked "..guestname.." for being too close to "..hostname.."'s spawn")
-                            return
 
                         elseif vdist < exile_distance*1.5 and sdist > exile_distance then
                             minetest.chat_send_player(guestname, "You are getting too close to "..hostname.."'s turf.")
-                            return
                         end
                     end
                 end
