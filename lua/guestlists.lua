@@ -196,9 +196,11 @@ function rspawn.guestlists:listguests(hostname)
 
     -- Town bans - always list so this can be maanged even when town is closed
     for guestname,status in pairs(global_hosts[hostname] or {}) do
-        if status == GUEST_ALLOW then status = "" else status = " (banned from town)" end
+        if guestname ~= "town status" then
+            if status == GUEST_ALLOW then status = "" else status = " (banned from town)" end
 
-        guests = guests..", "..guestname..status
+            guests = guests..", "..guestname..status
+        end
     end
 
     if guests == "" then
@@ -297,7 +299,7 @@ local function townunban(callername, guestname, hostname)
 
         rspawn.playerspawns["town lists"][hostname][guestname] = nil
 
-        minetest.chat_send_player(callername, "Evicted "..guestname.." from "..hostname.."'s spawn")
+        minetest.chat_send_player(callername, "Allowed "..guestname.." back to town "..hostname)
         minetest.log("action", "[rspawn] - "..callername.." lifts eviction on "..guestname.." on behalf of "..hostname)
     else
         minetest.chat_send_player(callername, "You are not permitted to act on behalf of "..hostname)
