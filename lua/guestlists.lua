@@ -305,6 +305,21 @@ local function townunban(callername, guestname, hostname)
     rspawn:spawnsave()
 end
 
+local function listtowns()
+    local town_lists = rspawn.playerspawns["town lists"] or {}
+    local open_towns = ""
+
+    for townname,banlist in pairs(town_lists) do
+        if banlist["town status"] == "on" then
+            open_towns = open_towns..", "..townname
+        end
+    end
+
+    if open_towns ~= "" then
+        return open_towns:sub(3)
+    end
+end
+
 function rspawn.guestlists:townset(hostname, params)
     if not hostname then return end
 
@@ -335,6 +350,13 @@ function rspawn.guestlists:townset(hostname, params)
 
     elseif mode == "unban" and guestname then
         townunban(hostname, guestname, params[3])
+
+    elseif mode == nil or mode == "" then
+        local open_towns = listtowns()
+        if not open_towns then
+            open_towns = "(none yet)"
+        end
+        minetest.chat_send_player(hostname, open_towns)
 
     else
         minetest.chat_send_player(hostname, "Unknown parameterless town operation: "..tostring(mode) )
@@ -390,5 +412,14 @@ minetest.register_globalstep(function(dtime)
             end
         end
 
+    end
+end)
+
+-- Announce towns!
+
+minetest.register_on_joinplayer(function(player)
+    local open_towns = listtowns()
+    if open_towns then
+        minetest.chat_send_player(player:get_player_name(), "Currently open towns: "..open_towns..". Visit with '/spawn visit <townname>' !")
     end
 end)
