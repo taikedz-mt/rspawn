@@ -118,6 +118,10 @@ local function canvisit(hostname, guestname)
 
     if explicitly_banned or explicitly_banned_from_town then
         return false
+
+    elseif host_glist[guestname] == GUEST_ALLOW then
+        return true
+
     elseif open_town then
         return true
     end
