@@ -88,6 +88,9 @@ function rspawn:spawnload()
     local pregens = rspawn.playerspawns["pre gen"] or {}
     rspawn.playerspawns["pre gen"] = pregens
 
+    local towns = rspawn.playerspawns["town lists"] or {}
+    rspawn.playerspawns["town lists"] = towns
+
     reconcile_original_spawns()
     reconcile_guestlist_spawns()
 

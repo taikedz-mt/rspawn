@@ -7,7 +7,7 @@ local cooldown_time = tonumber(minetest.settings:get("rspawn.cooldown_time")) or
 minetest.register_privilege("spawn", "Can teleport to a spawn position and manage shared spawns.")
 minetest.register_privilege("setspawn", "Can manually set a spawn point.")
 minetest.register_privilege("newspawn", "Can get a new randomized spawn position.")
-minetest.register_privilege("spawnadmin", "Can clean up timers and set new spawns for players.")
+minetest.register_privilege("spawnadmin", "Can set new spawns for players.")
 
 -- Support functions
 
@@ -35,11 +35,11 @@ end
 
 minetest.register_chatcommand("spawn", {
 	description = "Teleport to your spawn, or manage guests in your spawn.",
-	params = "[ add <player> | visit <player> | kick <player> | guests | hosts ]",
+	params = "[ add <player> | visit <player> | kick <player> | guests | hosts | town { open | close | ban <player> [<town>] | unban <player> [<town>] } ]",
 	privs = "spawn",
 	func = function(playername, args)
 		local target = rspawn.playerspawns[playername]
-        local args = args:split(" ")
+        local args = args:split(" ", false, 1)
 
         if #args == 0 then
             if target then
@@ -50,13 +50,14 @@ minetest.register_chatcommand("spawn", {
                 minetest.chat_send_player(playername, "You have no spawn position!")
                 return
             end
-        elseif #args < 3 then
+        elseif #args < 4 then
             for command,action in pairs({
                 ["guests"] = function() rspawn.guestlists:listguests(playername) end,
                 ["hosts"] = function() rspawn.guestlists:listhosts(playername) end,
                 ["add"] = function(commandername,targetname) rspawn.guestlists:addplayer(commandername,targetname) end,
                 ["visit"] = function(commandername,targetname) rspawn.guestlists:visitplayer(targetname, commandername) end,
-                ["kick"] = function(commandername,targetname) rspawn.guestlists:exileplayer(commandername, targetname) end,
+                ["kick"] = function(commandername, params) rspawn.guestlists:kickplayer(commandername, params) end,
+                ["town"] = function(commandername,mode) rspawn.guestlists:townset(commandername, mode) end,
                 }) do
 
                 if args[1] == command then
@@ -65,14 +66,14 @@ minetest.register_chatcommand("spawn", {
                         return
 
                     elseif #args == 1 then
-                        action()
+                        action(playername)
                         return
                     end
                 end
             end
         end
         
-        minetest.chat_send_player(playername, "Please check '/help spawn'")
+        minetest.chat_send_player(playername, "Bad command. Please check '/help spawn'")
 	end
 })
 

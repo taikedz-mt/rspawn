@@ -7,6 +7,8 @@ rspawn.gen_frequency (Spawnpoint generation frequency [seconds]) string 60
 rspawn.spawn_block (Node to place under new spawn point) string 
 rspawn.levvy_name (Levvy itemstring) string "default:cobble"
 rspawn.levvy_qtty (Levvy quantity) string 10
+rspawn.kick_period (Exile kick check period) string 1
+rspawn.exile_distance (Exile distance) string 64
 rspawn.cooldown_time (Cooldown between /newspawn uses) string 300
 rspawn.min_x (Westmost bounds) string -31000
 rspawn.max_x (Eastmost bounds) string 31000
