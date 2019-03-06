@@ -86,7 +86,11 @@ function rspawn:newspawn(pos, radius)
          and not minetest.is_protected(anode, "")
          and not (under.groups and under.groups.leaves ) -- no spawning on treetops!
          and daylight_above(7, anode) then
-            validnodes[#validnodes+1] = anode
+            if under.buildable_to then
+                validnodes[#validnodes+1] = {x=anode.x, y=anode.y-1, z=anode.z}
+            else
+                validnodes[#validnodes+1] = anode
+            end
         end
     end
 
