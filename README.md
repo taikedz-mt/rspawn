@@ -79,6 +79,11 @@ Note that the spawn generation is performed in the background on a timer, allowi
 * `rspawn.debug` - whether to print debugging messages, default `false`
 * Bounds limiting - you can limit the random spawning search area to a given subsection of the global map if you wish:
     * `rspawn.min_x`, `rspawn.max_x`, `rspawn.min_z`, `rspawn.max_z` as expected
+* Forbid biomes - you can prevent players from spawning into given biomes using the `rspawn.forbidden_biomes` setting which is a comma-separated list of biome names.
+    * Names are part of the mapgen used. Some suggested names were put forward [in a PR](https://github.com/minetest/minetest/pull/6455) when implemented, see mapgen documentation for actual names.
+    * If an individual name starts with `%` then that name is searched for anywhere in the found biome's name.
+    * Example value could be `icesheet,icesheet_ocean,%desert` to prevent producing spawns in barren wastelands.
+    * Default is to not forbid any biomes
 
 ## Troubleshooting
 

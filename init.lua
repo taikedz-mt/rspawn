@@ -3,7 +3,7 @@ rspawn.playerspawns = {}
 
 local mpath = minetest.get_modpath("rspawn")
 
--- Water level, plus one to ensure we are above the sea.
+-- Water level, to ensure we search above the sea.
 local water_level = tonumber(minetest.settings:get("water_level", "0") )
 local radial_step = 16
 
@@ -27,6 +27,9 @@ rspawn.min_x = tonumber(minetest.settings:get("rspawn.min_x") or -31000)
 rspawn.max_x = tonumber(minetest.settings:get("rspawn.max_x") or 31000)
 rspawn.min_z = tonumber(minetest.settings:get("rspawn.min_z") or -31000)
 rspawn.max_z = tonumber(minetest.settings:get("rspawn.max_z") or 31000)
+
+rspawn.forbidden_biomes = minetest.settings:get("rspawn.forbidden_biomes") or ""
+rspawn.forbidden_biomes = rspawn.forbidden_biomes:split(",")
     
 dofile(mpath.."/lua/data.lua")
 dofile(mpath.."/lua/guestlists.lua")
@@ -48,6 +51,23 @@ end
 local function daylight_above(min_daylight, pos)
     local level = minetest.get_node_light(pos, 0.5)
     return min_daylight <= level
+end
+
+local function is_forbidden_biome(anode)
+    local biome_data = minetest.get_biome_data(anode)
+    local biome_name = minetest.get_biome_name(biome_data.biome)
+
+    for forbidden_name in rspawn.forbidden_biomes do
+        if ( forbidden_name[1] == '%'
+            and biome_name:gmatch(forbidden_name[2:]) -- FIXME this is python substring syntax and search, adjust for Lua
+            )
+            or forbidden_name == biome_name
+            then
+
+            return true
+        end
+    end
+    return false
 end
 
 function rspawn:get_positions_for(pos, radius)
@@ -85,7 +105,8 @@ function rspawn:newspawn(pos, radius)
          and not over.walkable
          and not minetest.is_protected(anode, "")
          and not (under.groups and under.groups.leaves ) -- no spawning on treetops!
-         and daylight_above(7, anode) then
+         and daylight_above(7, anode)
+         and not is_forbidden_biome(anode) then
             if under.buildable_to then
                 validnodes[#validnodes+1] = {x=anode.x, y=anode.y-1, z=anode.z}
             else
