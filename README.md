@@ -84,6 +84,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
     * If an individual name starts with `%` then that name is searched for anywhere in the found biome's name.
     * Example value could be `icesheet,icesheet_ocean,%desert` to prevent producing spawns in barren wastelands.
     * Default is to not forbid any biomes
+    * This feature relies on Minetest 5.0+ ; it will simply be ignored on older versions
 
 ## Troubleshooting
 

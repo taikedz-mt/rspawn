@@ -54,14 +54,21 @@ local function daylight_above(min_daylight, pos)
 end
 
 local function is_forbidden_biome(anode)
+    if not minetest.get_biome_data then -- pre 5.0
+        return false
+    end
+
     local biome_data = minetest.get_biome_data(anode)
     local biome_name = minetest.get_biome_name(biome_data.biome)
 
     for forbidden_name in rspawn.forbidden_biomes do
-        if ( forbidden_name[1] == '%'
-            and biome_name:gmatch(forbidden_name[2:]) -- FIXME this is python substring syntax and search, adjust for Lua
+        if (
+            (
+            forbidden_name:strsub(1,2) == '%'
+            and biome_name:gmatch(forbidden_name:strsub(2))
             )
             or forbidden_name == biome_name
+            )
             then
 
             return true
@@ -83,7 +90,7 @@ end
 function rspawn:newspawn(pos, radius)
     -- Given a seed position and a radius, find an exact spawn location
     --   that is an air node, walkable under it, non-walkable over it
-    --   bright during the day, and not leaves
+    --   light during the day (prevent subterranean spawning), and not leaves
 
     rspawn:debug("Trying somewhere around "..minetest.pos_to_string(pos))
 
