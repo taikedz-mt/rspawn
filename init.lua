@@ -2,6 +2,7 @@ rspawn = {}
 rspawn.playerspawns = {}
 
 local mpath = minetest.get_modpath("rspawn")
+local spawnrand_exists = minetest.get_modpath("spawnrand")
 
 -- Water level, plus one to ensure we are above the sea.
 local water_level = tonumber(minetest.settings:get("water_level", "0") )
@@ -16,6 +17,7 @@ rspawn.bedspawn = minetest.setting_getbool("enable_bed_respawn") ~= false -- fro
 
 -- rSpawn specific settings
 rspawn.debug_on = minetest.settings:get_bool("rspawn.debug")
+rspawn.random_delegate_use = minetest.settings:get("rspawn.random_delegate_use")
 rspawn.spawnanywhere = minetest.settings:get_bool("rspawn.spawn_anywhere") ~= false
 rspawn.kick_on_fail = minetest.settings:get_bool("rspawn.kick_on_fail") == true
 rspawn.max_pregen_spawns = tonumber(minetest.settings:get("rspawn.max_pregen") or 5)
@@ -191,9 +193,12 @@ function rspawn:renew_player_spawn(playername)
     end
 end
 
+if spawnrand_exists == false and rspawn.random_delegate_use == "false" then
+
 minetest.register_on_joinplayer(function(player)
     rspawn:set_newplayer_spawn(player)
 end)
+
 
 minetest.register_on_respawnplayer(function(player)
     -- return true to disable further respawn placement
@@ -220,5 +225,9 @@ minetest.register_on_respawnplayer(function(player)
         return false
     end
 end)
+
+else
+    minetest.log("warning", "rspawn -- loaded but randown spawn for new players are from spawnrand ")
+end
 
 dofile(mpath.."/lua/pregeneration.lua")

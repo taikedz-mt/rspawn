@@ -62,6 +62,7 @@ Note that the spawn generation is performed in the background on a timer, allowi
 *rspawn-specific settings*
 
 * Settings related to spawn generation
+    * `rspawn.random_delegate_use` - delegate to psawnrand mod the randomized spawn point
     * `rspawn.max_pregen` - maximum number of spawn points to pre-generate, default `20`
     * `rspawn.search_radius` - lateral radius around random point, within which a spawn point will be sought, default `32`
     * `rspawn.gen_frequency` - how frequently (in seconds) to generate a new spawn point, default `30`, increase this on slower servers
@@ -84,7 +85,9 @@ Note that the spawn generation is performed in the background on a timer, allowi
 
 As admin, you will receive notifications of inability to generate spawns when players join without being set a spawn.
 
-You can turn on `rspawn.debug = true` to see debug in logs.
+The most easy way to optimize on big servers is to delegate the spawn random manage to `spawnrand` mod, so generation of spawns will be only to `/newspawn` commands.
+
+But if you dont have that mod and wants to use `rspawn` only, you can turn on `rspawn.debug = true` to see debug in logs.
 
 Spawn generation uses a temporary forceload to read the blocks in the area ; it then releases the forceload after operating, so should not depend on the `max_forceloaded_blocks` setting.
 
@@ -101,13 +104,25 @@ Resolutions in order of best to worst:
 * Stop minetest, delete the `force_loaded.txt` file, and start it again
     * (bad - some things in the mods using the forceload mechanism may break)
 
-## Single Player Mode
+## Optimizations - single players vs multiplayers
 
-This mod is mainly intended for use on servers with multiple players.
+This mod is mainly intended for use on servers with multiple players. It is also suitable for single player sessions too - if you want a new location to start a creative build, but don't want to go through creating another, separate world for it, just grab yourself a new spawnpoint!
 
-It is also suitable for single player sessions too - if you want a new location to start a creative build, but don't want to go through creating another, separate world for it, just grab yourself a new spawnpoint!
+On big multiplayers servers or small simgle players computers you may want to tune the mod to suit your computer's capabilities ; to this end, the following may be helpful:
 
-You may want to tune the mod to suit your computer's capabilities ; to this end, the following may be helpful:
+For more infor check issue https://github.com/taikedz-mt/rspawn/issues/6#issuecomment-942545912
+
+#### For multiplayers big servers
+
+* First best options is to delegate the process of spawn points of players at join, 
+    * download and put the `spawnrand` mod to your world or server mods path
+    * set `rspawn.random_delegate_use` to `true` delegate to psawnrand mod the randomized spawn point
+    * so generation of spawns pre gens will be only to `/newspawn` commands.
+* On other side, and still want to use `rspawn` then change the frequency of pregeneration as required
+    * set `rspawn.gen_frequency` to a high number like 120 seconds or 300
+    * Change the Cooldown time - default is `300` seconds (5 minutes) between uses of `/newspawn`
+
+#### For single players
 
 * Add `rspawn` to your world
     * Go to the *Advanced Settings* area of Minetest, look for `mods > rspawn`

@@ -1,3 +1,4 @@
+rspawn.random_delegate_use (delegate random join to mod) string true
 rspawn.debug (Debug mode) bool false
 rspawn.spawn_anywhere (Spawn anywhere) bool true
 rspawn.kick_on_fail (Kick on fail) bool false
