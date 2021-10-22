@@ -52,7 +52,11 @@ end
 
 function rspawn:get_positions_for(pos, radius)
     local breadth = radius
-    local altitude = radius*2
+    local altitude = water_level + radius
+
+    if rspawn.spawnanywhere then
+        altitude = radius
+    end
 
     local pos1 = {x=pos.x-breadth, y=pos.y, z=pos.z-breadth}
     local pos2 = {x=pos.x+breadth, y=pos.y+altitude, z=pos.z+breadth}
