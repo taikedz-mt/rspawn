@@ -145,7 +145,7 @@ function rspawn:set_player_spawn(name, newpos)
     return true
 end
 
-function rspawn:set_newplayer_spawn(player)
+function rspawn:set_newplayer_spawn(player, attempts)
     -- only use for new players / players who have never had a randomized spawn
     if not player then return end
 
@@ -162,7 +162,7 @@ function rspawn:set_newplayer_spawn(player)
         else
             -- We did not get a new position
             
-            if rspawn.kick_on_fail then
+            if rspawn.kick_on_fail or attempts <= 0 then
                 minetest.kick_player(playername, "No personalized spawn points available - please try again later.")
 
             else
@@ -171,7 +171,7 @@ function rspawn:set_newplayer_spawn(player)
                 minetest.log("warning", "rspawn -- Exhausted spawns! Could not spawn "..playername)
 
                 minetest.after(rspawn.gen_frequency, function()
-                    rspawn:set_newplayer_spawn(player)
+                    rspawn:set_newplayer_spawn(player, attempts-1)
                 end)
             end
         end
@@ -196,7 +196,7 @@ function rspawn:renew_player_spawn(playername)
 end
 
 minetest.register_on_joinplayer(function(player)
-    rspawn:set_newplayer_spawn(player)
+    rspawn:set_newplayer_spawn(player, 5)
 end)
 
 minetest.register_on_respawnplayer(function(player)
