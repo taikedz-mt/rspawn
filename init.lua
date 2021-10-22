@@ -21,7 +21,7 @@ rspawn.kick_on_fail = minetest.settings:get_bool("rspawn.kick_on_fail") == true
 rspawn.max_pregen_spawns = tonumber(minetest.settings:get("rspawn.max_pregen") or 5)
 rspawn.search_radius = tonumber(minetest.settings:get("rspawn.search_radius") or 32)
 rspawn.gen_frequency = tonumber(minetest.settings:get("rspawn.gen_frequency") or 30)
-rspawn.spawn_block = minetest.settings:get("rspawn.spawn_block")
+rspawn.spawn_block = minetest.settings:get("rspawn.spawn_block") or "default:dirt_with_grass"
 
 rspawn.min_x = tonumber(minetest.settings:get("rspawn.min_x") or -31000)
 rspawn.max_x = tonumber(minetest.settings:get("rspawn.max_x") or 31000)
@@ -35,6 +35,11 @@ dofile(mpath.."/lua/forceload.lua")
 dofile(mpath.."/lua/debugging.lua")
 
 
+minetest.after(0,function()
+    if not minetest.registered_items[rspawn.spawn_block] then
+        rspawn.spawn_block = "default:dirt_with_grass"
+    end
+end)
 
 
 rspawn:spawnload()
