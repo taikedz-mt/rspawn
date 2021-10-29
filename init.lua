@@ -90,15 +90,22 @@ function rspawn:newspawn(pos, radius)
         under = minetest.registered_nodes[under]
         over = minetest.registered_nodes[over]
 
-        if under.walkable
-         and not over.walkable
-         and not minetest.is_protected(anode, "")
-         and not (under.groups and under.groups.leaves ) -- no spawning on treetops!
-         and daylight_above(7, anode) then
-            if under.buildable_to then
-                validnodes[#validnodes+1] = {x=anode.x, y=anode.y-1, z=anode.z}
-            else
-                validnodes[#validnodes+1] = anode
+        if under == nil or over == nil then
+            -- `under` or `over` could be nil if a mod that defined that node was removed.
+            -- Not something this mod can resolve, and so we just ignore it.
+            rspawn:debug("Found an undefined node around "..minetest.pos_to_string(anode))
+
+        else
+            if under.walkable
+             and not over.walkable
+             and not minetest.is_protected(anode, "")
+             and not (under.groups and under.groups.leaves ) -- no spawning on treetops!
+             and daylight_above(7, anode) then
+                if under.buildable_to then
+                    validnodes[#validnodes+1] = {x=anode.x, y=anode.y-1, z=anode.z}
+                else
+                    validnodes[#validnodes+1] = anode
+                end
             end
         end
     end
