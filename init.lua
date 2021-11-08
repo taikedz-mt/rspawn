@@ -173,14 +173,23 @@ function rspawn:set_newplayer_spawn(player, attempts)
 
         else
             -- We did not get a new position
-            
-            if rspawn.kick_on_fail or attempts <= 0 then
+
+            if rspawn.kick_on_fail then
                 minetest.kick_player(playername, "No personalized spawn points available - please try again later.")
 
             else
-                minetest.chat_send_player(playername, "Could not get custom spawn! Retrying in "..rspawn.gen_frequency.." seconds")
-                minetest.chat_send_player(rspawn.admin, "Exhausted spawns! Could not spawn "..playername)
-                minetest.log("warning", "rspawn -- Exhausted spawns! Could not spawn "..playername)
+
+                -- player just spawns (avoiting black screen) but still it not have spawn point assigned
+                if attempts <= 0 then
+                    local fixedpos = rspawn:genpos()
+
+                    fixedpos.y = water_level + rspawn.search_radius
+                    player:setpos(fixedpos) -- player just spawns (avoiting black screen) but still it not have spawn point assigned
+                    minetest.chat_send_player(rspawn.admin, "Exhausted spawns! just spawn "..playername.." without spawn point")
+                end
+
+                minetest.chat_send_player(playername, "Could not get custom spawn! Used fixed one and retrying in "..rspawn.gen_frequency.." seconds")
+                minetest.log("warning", "rspawn -- Exhausted spawns! Could not spawn "..playername.." so used fixed one")
 
                 minetest.after(rspawn.gen_frequency, function()
                     rspawn:set_newplayer_spawn(player, attempts-1)
