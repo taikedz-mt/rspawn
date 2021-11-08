@@ -65,9 +65,10 @@ Note that the spawn generation is performed in the background on a timer, allowi
     * `rspawn.max_pregen` - maximum number of spawn points to pre-generate, default `20`
     * `rspawn.search_radius` - lateral radius around random point, within which a spawn point will be sought, default `32`
     * `rspawn.gen_frequency` - how frequently (in seconds) to generate a new spawn point, default `30`, increase this on slower servers
-* `rspawn.spawn_anywhere` - whether to spawn anywhere in the world at sea level
-    * default `true`
-    * if `false`, will randomize around the static spawn point
+* `rspawn.spawn_anywhere` - whether to spawn anywhere in the world at sea level (limited by the bounds spawn limits, check below)
+if false, only spawns at a fixed spawn locaiton, for every player.
+    * if `true`, (default) spawns the player somewhere else on the map within valid air node and not inside solid block
+    * if `false`, will randomize around the static spawn point using search radius as maximun area for.
 * `rspawn.cooldown_time` - how many seconds between two uses of `/newspawn`, per player
 * `rspawn.kick_on_fail` - whether to kick the player if a randomized spawn cannot be set, default `false`
 * `rspawn.spawn_block` - place this custom block under the user's spawn point
@@ -82,18 +83,20 @@ Note that the spawn generation is performed in the background on a timer, allowi
 
 ## Troubleshooting
 
-As admin, you will receive notifications of inability to generate spawns when players join without being set a spawn.
+As admin, you will receive notifications of inability to generate spawns when players join without being set a spawn. Those players will join but cannot play cos cannot spawn in a "valid spawn point".
 
-You can turn on `rspawn.debug = true` to see debug in logs.
+If you only wants to solve it, just define a valid fixed spawn point with `static_spawnpoint` on your minetest.conf config file, then set `rspawn.gen_frequency` to a high number like 120 seconds or 300; warnings will continue but players will join and play (withou a spawn point set yet, take note).
 
-Spawn generation uses a temporary forceload to read the blocks in the area ; it then releases the forceload after operating, so should not depend on the `max_forceloaded_blocks` setting.
+If you are more hacker, you can turn on `rspawn.debug = true` to see debug in logs. Spawn generation uses a temporary forceload to read the blocks in the area ; it then releases the forceload after operating, so should not depend on the `max_forceloaded_blocks` setting.
 
-If the generation log shows `0 air nodes found within <x>` on more than 2-3 consecutive tries, you may want to check that another mod is not forceloading blocks and then not subsequently clearing them.
+If the generation log shows `0 air nodes found within <x>` on more than 2-3 consecutive tries, you may want to check that another mod is not forceloading blocks and then not subsequently clearing them, also try to reduce the bounds limits area of rspawn in settings, always around the fixed spawn point..
 
 You may also find some mods do permanent forceloads by design (though this should be rare). In your world folder `~/.minetest/worlds/<yourworld>` there should eb a `force_loaded.txt` - see that its contents are simply `return {}`; if there is data in the table, then something else is forceloading blocks with permanence.
 
 Resolutions in order of best to worst:
 
+* Define a valid fixed spawn point with `static_spawnpoint` to be a valid air node and not a solid block
+   * then set `rspawn.gen_frequency` to a high number like 120 seconds or 300, and reduce the bounds limits.
 * identify the mod and have it clear them properly (ideal)
     * on UNIX/Linux you should be able to run `grep -rl forceload ~/.minetest/mods/` to see all mod files where forceloading is being done
 * increase the max number of forceloaded blocks
@@ -101,13 +104,20 @@ Resolutions in order of best to worst:
 * Stop minetest, delete the `force_loaded.txt` file, and start it again
     * (bad - some things in the mods using the forceload mechanism may break)
 
-## Single Player Mode
+## Optimizations
 
-This mod is mainly intended for use on servers with multiple players.
+It is also suitable for single player sessions too - if you want a new location to start a creative build, but don't need to go through creating another, separate world for it, just grab yourself a new spawnpoint!
 
-It is also suitable for single player sessions too - if you want a new location to start a creative build, but don't want to go through creating another, separate world for it, just grab yourself a new spawnpoint!
+On big multiplayers servers or small single players computers you may want to tune the mod.
 
-You may want to tune the mod to suit your computer's capabilities ; to this end, the following may be helpful:
+#### For multiplayers big servers
+
+* Define a valid fixed spawn point on your minetest.conf config file using the `static_spawnpoint` to a valid air node, not a solid block: it will be used if you do not want players to be kicked (by usage of `rspawn.kick_on_fail`) when there are no valid respawns points available.
+* Bound limit must be little.. 400 nodes around is a number to play around. Do not set the `rspawn.search_radius` to a high number, 16 to 32 in big servers with big spawn random areas.
+* Set `rspawn.gen_frequency` to a high number like 120 seconds or 300
+* Change the Cooldown time - default is `300` seconds (5 minutes) between uses of `/newspawn`
+
+#### Single Player Mode
 
 * Add `rspawn` to your world
     * Go to the *Advanced Settings* area of Minetest, look for `mods > rspawn`
@@ -118,7 +128,7 @@ You may want to tune the mod to suit your computer's capabilities ; to this end,
     * Optionally, change the maximum pregen to the desired number of spawnpoints to pregenerate and hold
 * Start the game session; Wait around 1 minute or so as the initial spawn point gets generated and is assigned to you
 * Jump around! (with `/newspawn`)
-    * Until you exhaust your pregens :-P
+    * Until you exhaust pregens :-P
 
 ## License
 
