@@ -165,14 +165,14 @@ function rspawn:set_newplayer_spawn(player, attempts)
             rspawn:set_player_spawn(playername, newpos)
 
         else
-            local fixedpos = spawn:genpos()
-            rspawn:set_player_spawn(playernamer, fixedpos)
-
             -- We did not get a new position
             if rspawn.kick_on_fail or attempts <= 0 then
                 minetest.kick_player(playername, "No personalized spawn points available - please try again later.")
 
             else
+                local fixedpos = spawn:genpos()
+                 rspawn:set_player_spawn(playernamer, fixedpos)
+
                 minetest.chat_send_player(playername, "Could not get custom spawn! Used fixed one and retrying in "..rspawn.gen_frequency.." seconds")
                 minetest.chat_send_player(rspawn.admin, "Exhausted spawns! Could not spawn "..playername.." so used fixed one")
                 minetest.log("warning", "rspawn -- Exhausted spawns! Could not spawn "..playername.." so used fixed one")
